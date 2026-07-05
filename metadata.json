@@ -1,0 +1,6 @@
+{
+  "name": "Vault",
+  "description": "An ultra-premium, futuristic technical streetwear e-commerce storefront featuring the Glacier winter collection.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
