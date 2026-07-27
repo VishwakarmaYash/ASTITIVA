@@ -33,8 +33,17 @@ export const apiCall = async (
   const response = await fetch(url, config);
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'API request failed');
+    let errorMsg = 'API request failed';
+    try {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMsg = errorJson.error || errorJson.message || errorMsg;
+      } catch (_) {
+        errorMsg = errorText || errorMsg;
+      }
+    } catch (_) {}
+    throw new Error(errorMsg);
   }
 
   return response.json();
@@ -42,10 +51,10 @@ export const apiCall = async (
 
 // Auth API
 export const authAPI = {
-  register: (email: string, password: string) =>
+  register: (email: string, password: string, fullName?: string, phone?: string) =>
     apiCall('/auth/register', {
       method: 'POST',
-      body: { email, password },
+      body: { email, password, fullName, phone },
     }),
 
   login: (email: string, password: string) =>
@@ -55,6 +64,25 @@ export const authAPI = {
     }),
 
   getCurrentUser: () => apiCall('/auth/me'),
+
+  getCustomers: () => apiCall('/auth/customers'),
+
+  deleteCustomer: (userId: string) =>
+    apiCall(`/auth/users/${userId}`, {
+      method: 'DELETE',
+    }),
+
+  forgotPassword: (email: string) =>
+    apiCall('/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+    }),
+
+  resetPassword: (email: string, token: string, newPassword: string) =>
+    apiCall('/auth/reset-password', {
+      method: 'POST',
+      body: { email, token, password: newPassword },
+    }),
 };
 
 // Products API
@@ -77,14 +105,44 @@ export const productsAPI = {
     }),
 };
 
+// Banners API
+export const bannersAPI = {
+  getActive: (location: string = 'homepage') => apiCall(`/banners?location=${location}`),
+  getAllAdmin: () => apiCall('/banners/admin'),
+  createBanner: (banner: any) =>
+    apiCall('/banners', {
+      method: 'POST',
+      body: banner,
+    }),
+  updateBanner: (id: string, banner: any) =>
+    apiCall(`/banners/${id}`, {
+      method: 'PUT',
+      body: banner,
+    }),
+  deleteBanner: (id: string) =>
+    apiCall(`/banners/${id}`, {
+      method: 'DELETE',
+    }),
+};
+
+// Shipping Configuration API
+export const shippingAPI = {
+  getConfig: () => apiCall('/shipping'),
+  updateConfig: (config: any) =>
+    apiCall('/shipping', {
+      method: 'PUT',
+      body: config,
+    }),
+};
+
 // Cart API
 export const cartAPI = {
   get: () => apiCall('/cart'),
 
-  add: (productId: string, size: string, quantity: number = 1) =>
+  add: (productId: string, size: string, quantity: number = 1, customization?: any) =>
     apiCall('/cart/add', {
       method: 'POST',
-      body: { productId, size, quantity },
+      body: { productId, size, quantity, customization },
     }),
 
   update: (itemId: string, quantity: number) =>
@@ -115,6 +173,17 @@ export const ordersAPI = {
   getAll: () => apiCall('/orders'),
 
   getById: (orderId: string) => apiCall(`/orders/${orderId}`),
+
+  updateStatus: (orderId: string, status: string) =>
+    apiCall(`/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: { status },
+    }),
+
+  deleteOrder: (orderId: string) =>
+    apiCall(`/orders/${orderId}`, {
+      method: 'DELETE',
+    }),
 };
 
 // Wishlist API

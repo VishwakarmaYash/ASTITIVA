@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import WebsiteApp from "./App";
 import AdminApp from "./admin/App";
 
-function AdminRoute({ children }: { children: React.ReactNode }) {
+function AdminRoute({ children }: { children: ReactNode }) {
   const token = localStorage.getItem("vault_auth_token");
   const role = localStorage.getItem("vault_user_role");
 

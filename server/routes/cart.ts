@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { supabase } from '../config/database';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { getShippingConfig } from '../models/shipping';
 
 const router = Router();
 
@@ -9,16 +10,20 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { data, error } = await supabase
       .from('cart_items')
-      .select(
-        `
-        *,
-        products (*)
-      `
-      )
+      .select(`*, products (*)`)
       .eq('user_id', req.userId);
 
     if (error) throw error;
-    res.json(data || []);
+
+    // Calculate cart total server‑side using dynamic shipping config
+    const cart = data || [];
+    const subtotal = cart.reduce((sum: number, item: any) => sum + item.products.price * item.quantity, 0);
+    const tax = Math.round(subtotal * 0.1 * 100) / 100; // 10% tax
+    const shippingConfig = await getShippingConfig();
+    const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.baseShippingFee;
+    const total = subtotal + tax + shipping;
+
+    res.json({ items: cart, subtotal, tax, shipping, total });
   } catch (error) {
     console.error('Get cart error:', error);
     res.status(500).json({ error: 'Failed to fetch cart' });
@@ -28,20 +33,23 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
 // Add to cart
 router.post('/add', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const { productId, size, quantity } = req.body;
+    const { productId, size, quantity, customization } = req.body;
 
     if (!productId || !size) {
       return res.status(400).json({ error: 'Product ID and size required' });
     }
 
-    // Check if item already in cart
-    const { data: existing } = await supabase
+    // Check if item already in cart with exact same size and customization
+    const { data: existingList } = await supabase
       .from('cart_items')
       .select('*')
       .eq('user_id', req.userId)
       .eq('product_id', productId)
-      .eq('size', size)
-      .single();
+      .eq('size', size);
+
+    const existing = (existingList || []).find(item => 
+      JSON.stringify(item.customization) === JSON.stringify(customization || null)
+    );
 
     if (existing) {
       // Update quantity
@@ -73,6 +81,7 @@ router.post('/add', authMiddleware, async (req: AuthRequest, res: Response) => {
           product_id: productId,
           size,
           quantity: quantity || 1,
+          customization: customization || null,
         },
       ])
       .select(

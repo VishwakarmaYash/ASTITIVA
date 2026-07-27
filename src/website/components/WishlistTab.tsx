@@ -73,7 +73,7 @@ export default function WishlistTab({
                       {p.name}
                     </h3>
                     <span className="font-mono text-sm font-semibold tracking-wider text-[#141b2b]">
-                      ${p.price}
+                      Rs. {p.price}
                     </span>
                   </div>
                   <p className="font-mono text-[10px] tracking-[0.2em] text-[#575f65] uppercase mt-0.5">

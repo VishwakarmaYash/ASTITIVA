@@ -19,7 +19,7 @@ export default function ProductCard({
   return (
     <div
       id={`product-card-${product.id}`}
-      className="group relative flex flex-col glass-card p-6 md:p-8 transition-all duration-500 hover:-translate-y-2 hover:border-[#141b2b]/30 bg-white/20 cursor-pointer rounded-none"
+      className="group relative flex flex-col bg-white border-2 border-black shadow-[4px_4px_0px_#141b2b] hover:shadow-[6px_6px_0px_#141b2b] hover:-translate-x-[2px] hover:-translate-y-[2px] transition-all duration-200 cursor-pointer rounded-none overflow-hidden"
       onClick={() => onViewDetails(product)}
     >
       {/* Wishlist Button Overlay */}
@@ -27,7 +27,7 @@ export default function ProductCard({
         id={`wishlist-toggle-${product.id}`}
         type="button"
         onClick={(e) => onToggleWishlist(product, e)}
-        className="absolute top-8 right-8 z-10 p-2.5 bg-white/60 hover:bg-white backdrop-blur-md text-[#141b2b] border border-white/50 hover:border-[#141b2b]/20 transition-all active:scale-90 rounded-none"
+        className="absolute top-4 right-4 z-10 p-2 bg-white text-[#141b2b] border-2 border-black shadow-[2px_2px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] transition-all active:scale-95 rounded-none cursor-pointer"
         aria-label="Toggle Wishlist"
       >
         <Heart
@@ -38,7 +38,7 @@ export default function ProductCard({
       </button>
 
       {/* Product Image Frame */}
-      <div className="aspect-[3/4] mb-8 overflow-hidden bg-white border border-black/5 relative">
+      <div className="aspect-[3/4] overflow-hidden bg-white relative">
         <img
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -50,28 +50,30 @@ export default function ProductCard({
       </div>
 
       {/* Card Details Block */}
-      <div className="flex justify-between items-start flex-grow">
+      <div className="bg-[#ccff00] p-5 flex flex-col justify-between flex-grow text-black border-t-2 border-black">
         <div>
-          <h3 className="font-display font-extrabold text-lg md:text-xl text-[#141b2b] tracking-wider uppercase mb-1">
+          <h3 className="font-display font-extrabold text-base text-black tracking-wider uppercase mb-1 line-clamp-2">
             {product.name}
           </h3>
-          <p className="font-mono text-[11px] tracking-[0.2em] text-[#575f65] uppercase">
+          <p className="font-mono text-[9px] tracking-[0.15em] text-black/60 uppercase">
             {product.colorCode}
           </p>
         </div>
-        <span className="font-mono text-sm font-semibold tracking-wider text-[#141b2b]">
-          ${product.price}
-        </span>
+        {product.compareAtPrice && product.compareAtPrice > product.price ? (
+          <div className="flex items-baseline gap-2.5 mt-3">
+            <span className="font-mono text-sm md:text-base font-extrabold text-[#ba1a1a] block">
+              Rs. {product.price}
+            </span>
+            <span className="font-mono text-[10px] md:text-xs text-black/50 line-through decoration-1 block">
+              Rs. {product.compareAtPrice}
+            </span>
+          </div>
+        ) : (
+          <span className="font-mono text-sm md:text-base font-extrabold text-black block mt-3">
+            Rs. {product.price}
+          </span>
+        )}
       </div>
-
-      {/* Hover action footer */}
-      <button
-        id={`product-discover-btn-${product.id}`}
-        type="button"
-        className="mt-8 w-full bg-[#141b2b] hover:bg-[#2c3547] text-white py-4 font-mono text-[11px] uppercase tracking-[0.25em] transition-all duration-300 active:scale-[0.98] rounded-none opacity-0 group-hover:opacity-100"
-      >
-        Discover Details
-      </button>
     </div>
   );
 }

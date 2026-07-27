@@ -36,7 +36,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 // Create product (admin only - requires auth)
 router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const { id, name, price, description, category, image, colorCode, features, specs, sizes } = req.body;
+    const { id, name, price, compareAtPrice, description, category, image, colorCode, features, specs, sizes, images } = req.body;
 
     if (!id || !name || !price) {
       return res.status(400).json({ error: 'ID, name, and price are required' });
@@ -46,6 +46,7 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
       id,
       name,
       price,
+      compare_at_price: compareAtPrice || null,
       description: description || '',
       category: category || 'Accessories',
       image: image || '',
@@ -54,6 +55,7 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
       specs: specs || [],
       sizes: sizes || [],
       inventory: 100,
+      images: images || [],
     };
 
     const { data, error } = await supabase
@@ -74,13 +76,14 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
 router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, price, description, category, image, colorCode, features, specs, sizes } = req.body;
+    const { name, price, compareAtPrice, description, category, image, colorCode, features, specs, sizes, images } = req.body;
 
     const { data, error } = await supabase
       .from('products')
       .update({
         name,
         price,
+        compare_at_price: compareAtPrice || null,
         description,
         category,
         image,
@@ -88,6 +91,7 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
         features,
         specs,
         sizes,
+        images,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

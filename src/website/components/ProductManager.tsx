@@ -29,11 +29,13 @@ export default function ProductManager({ onClose, onProductsUpdated }: ProductMa
     features: [],
     specs: [],
     sizes: [],
+    images: [],
   });
 
   const [featureInput, setFeatureInput] = useState("");
   const [specInput, setSpecInput] = useState("");
   const [sizeInput, setSizeInput] = useState("");
+  const [galleryInput, setGalleryInput] = useState("");
 
   // Load products
   useEffect(() => {
@@ -62,11 +64,13 @@ export default function ProductManager({ onClose, onProductsUpdated }: ProductMa
       features: [],
       specs: [],
       sizes: [],
+      images: [],
     });
     setEditingId(null);
     setFeatureInput("");
     setSpecInput("");
     setSizeInput("");
+    setGalleryInput("");
   };
 
   const handleEdit = (product: Product) => {
@@ -195,7 +199,7 @@ export default function ProductManager({ onClose, onProductsUpdated }: ProductMa
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[9px] font-bold text-[#575f65] uppercase tracking-widest block mb-1">
-                    Price ($)
+                    Price (Rs)
                   </label>
                   <input
                     type="number"
@@ -245,6 +249,67 @@ export default function ProductManager({ onClose, onProductsUpdated }: ProductMa
                   placeholder="https://..."
                   className="w-full px-3 py-2 border border-black/10 rounded text-sm"
                 />
+              </div>
+
+              {/* Additional Gallery Photos */}
+              <div>
+                <label className="text-[9px] font-bold text-[#575f65] uppercase tracking-widest block mb-1">
+                  Additional Photos (URLs)
+                </label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={galleryInput}
+                    onChange={(e) => setGalleryInput(e.target.value)}
+                    placeholder="https://... (add extra photo)"
+                    className="flex-grow px-2 py-1.5 border border-black/10 rounded text-xs focus:outline-none"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addArrayItem(formData.images || [], galleryInput, (images) =>
+                          setFormData({ ...formData, images })
+                        );
+                        setGalleryInput("");
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      addArrayItem(formData.images || [], galleryInput, (images) =>
+                        setFormData({ ...formData, images })
+                      );
+                      setGalleryInput("");
+                    }}
+                    className="px-3 py-1.5 bg-[#141b2b] text-white text-xs rounded hover:bg-[#1a2439] cursor-pointer"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto border border-black/5 p-2 bg-white">
+                  {(formData.images || []).map((imgUrl, i) => (
+                    <div
+                      key={i}
+                      className="relative w-10 h-10 border border-black/10 group rounded overflow-hidden"
+                    >
+                      <img referrerPolicy="no-referrer" src={imgUrl} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeArrayItem(formData.images || [], i, (images) =>
+                            setFormData({ ...formData, images })
+                          )
+                        }
+                        className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {(formData.images || []).length === 0 && (
+                    <span className="text-[10px] text-[#575f65]/40 italic">No additional photos</span>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -371,7 +436,7 @@ export default function ProductManager({ onClose, onProductsUpdated }: ProductMa
                           {product.name}
                         </h4>
                         <p className="text-xs text-[#575f65] mt-1">
-                          {product.colorCode} • ${product.price} • {product.category}
+                          {product.colorCode} • Rs. {product.price} • {product.category}
                         </p>
                         {product.sizes && product.sizes.length > 0 && (
                           <p className="text-xs text-[#575f65] mt-1">

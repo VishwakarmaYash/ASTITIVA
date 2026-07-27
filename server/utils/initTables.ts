@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
+  compare_at_price DECIMAL(10, 2),
   description TEXT,
   color_code TEXT,
   category TEXT,
@@ -99,6 +100,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
   product_id TEXT NOT NULL REFERENCES products(id),
   size TEXT NOT NULL,
   quantity INT NOT NULL DEFAULT 1,
+  customization JSONB DEFAULT NULL,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -135,7 +137,61 @@ CREATE TABLE IF NOT EXISTS order_items (
   size TEXT NOT NULL,
   quantity INT NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
+  customization JSONB DEFAULT NULL,
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Password resets table
+CREATE TABLE IF NOT EXISTS password_resets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL,
+  token TEXT NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Banners table
+CREATE TABLE IF NOT EXISTS banners (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT,
+  description TEXT,
+  image_url TEXT NOT NULL,
+  button_text TEXT DEFAULT 'Shop Now',
+  button_link TEXT DEFAULT '/',
+  location TEXT DEFAULT 'homepage',
+  start_date TIMESTAMP,
+  end_date TIMESTAMP,
+  is_active BOOLEAN DEFAULT true,
+  priority INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Shipping configurations table
+CREATE TABLE IF NOT EXISTS shipping_configurations (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  base_shipping_fee DECIMAL(10, 2) NOT NULL DEFAULT 10.00,
+  free_shipping_threshold DECIMAL(10, 2) NOT NULL DEFAULT 100.00,
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert default seeding configuration
+INSERT INTO shipping_configurations (id, base_shipping_fee, free_shipping_threshold)
+VALUES ('default', 50.00, 1000.00)
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed Custom Studio base product
+INSERT INTO products (id, name, price, description, category, image, sizes, inventory)
+VALUES (
+  'custom-apparel', 
+  'Custom Design Apparel', 
+  999.00, 
+  'Design your own custom premium streetwear apparel. Select color, size, text, and upload custom print designs.', 
+  'Customs', 
+  '/images/astitva_white_tee.png', 
+  ARRAY['S', 'M', 'L', 'XL'], 
+  9999
+)
+ON CONFLICT (id) DO NOTHING;
 `;
 }

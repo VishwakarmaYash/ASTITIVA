@@ -114,28 +114,28 @@ export default function GlacialOrb() {
       // Outer ambient soft glow (Layer 1)
       drawBlob(
         Math.min(width, height) * 0.35,
-        "rgba(240, 248, 255, 0.45)",
-        "rgba(255, 255, 255, 0)",
+        "rgba(0, 128, 128, 0.25)",
+        "rgba(0, 128, 128, 0)",
         0.8,
         0.8,
         0.0
       );
 
-      // Mid icy layer (Layer 2)
+      // Mid warm layer (Layer 2)
       drawBlob(
         Math.min(width, height) * 0.28,
-        "rgba(225, 235, 255, 0.55)",
-        "rgba(245, 248, 255, 0.05)",
+        "rgba(255, 180, 0, 0.15)",
+        "rgba(255, 180, 0, 0)",
         1.2,
         0.6,
         2.5
       );
 
-      // Inner glass core (Layer 3)
+      // Inner brand core (Layer 3)
       drawBlob(
         Math.min(width, height) * 0.20,
-        "rgba(255, 255, 255, 0.85)",
-        "rgba(235, 242, 255, 0.25)",
+        "rgba(255, 223, 172, 0.2)",
+        "rgba(255, 223, 172, 0)",
         1.5,
         0.4,
         4.0
@@ -156,7 +156,7 @@ export default function GlacialOrb() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none mix-blend-multiply opacity-85 z-0"
+      className="absolute inset-0 w-full h-full pointer-events-none mix-blend-screen opacity-75 z-0"
     />
   );
 }

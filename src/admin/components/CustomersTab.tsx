@@ -2,6 +2,7 @@ import { useState, FormEvent, MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Download, Plus, Mail, Phone, ChevronRight, X, Sparkles, PlusCircle, Check, Trash2 } from 'lucide-react';
 import { Customer } from '../types';
+import { authAPI } from '../../api/client';
 
 interface CustomersTabProps {
   customers: Customer[];
@@ -53,57 +54,21 @@ export default function CustomersTab({ customers, setCustomers, searchQuery }: C
 
   const handleAddCustomerSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!newName || !newEmail) {
-      alert('Please provide Name and Email.');
-      return;
-    }
-
-    const spendingNum = parseFloat(newSpending) || 0;
-    const ordersNum = parseInt(newOrdersCount) || 0;
-
-    const newCustomer: Customer = {
-      id: `C-${Math.floor(1000 + Math.random() * 9000)}`,
-      name: newName,
-      avatar: newAvatar,
-      email: newEmail,
-      phone: newPhone || '+1 (555) 000-0000',
-      joinedDate: `Joined ${new Date().toLocaleString('default', { month: 'short' })} ${new Date().getFullYear()}`,
-      totalOrders: ordersNum,
-      totalSpending: spendingNum,
-      status: newStatus,
-      recentOrdersList: [
-        { id: '#ORD-NEW', date: 'Just now', amount: spendingNum }
-      ],
-      timeline: [
-        {
-          id: 'T-ADD',
-          type: 'profile',
-          title: 'Account Registered',
-          date: 'Just now',
-          description: 'Luxury profile established in registry.'
-        }
-      ]
-    };
-
-    setCustomers([newCustomer, ...customers]);
-    alert(`${newName} is now logged into Astitiva Customer Registry.`);
+    alert('MANUAL CUSTOMER ADDITION IS DISABLED; CLIENTS REGISTER THEMSELVES VIA SECURED SIGN-UP PROTOCOLS.');
     setIsAddModalOpen(false);
-
-    // Reset fields
-    setNewName('');
-    setNewEmail('');
-    setNewPhone('');
-    setNewStatus('Member');
-    setNewSpending('');
-    setNewOrdersCount('');
   };
 
-  const handleDeleteCustomer = (id: string, e: MouseEvent) => {
+  const handleDeleteCustomer = async (id: string, e: MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Are you sure you want to dismiss this customer profile from the elite list?')) {
-      setCustomers(customers.filter((c) => c.id !== id));
-      if (selectedCustomer?.id === id) {
-        setSelectedCustomer(null);
+    if (confirm('Are you sure you want to dismiss this customer profile from the registry?')) {
+      try {
+        await authAPI.deleteCustomer(id);
+        setCustomers(customers.filter((c) => c.id !== id));
+        if (selectedCustomer?.id === id) {
+          setSelectedCustomer(null);
+        }
+      } catch (e: any) {
+        alert('Failed to delete customer: ' + e.message);
       }
     }
   };

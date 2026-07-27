@@ -6,6 +6,7 @@ export interface OrderItem {
   size: string;
   quantity: number;
   price: number;
+  customization?: any;
 }
 
 export interface Order {
@@ -58,6 +59,7 @@ export const createOrder = async (
       size: item.size,
       quantity: item.quantity,
       price: item.price,
+      customization: item.customization || null,
     }));
 
     const { error: itemsError } = await supabase
@@ -126,6 +128,24 @@ export const updateOrderStatus = async (orderId: string, status: string) => {
 
     if (error) throw error;
     return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getAllOrders = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        users (*),
+        order_items (*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
     throw error;
   }

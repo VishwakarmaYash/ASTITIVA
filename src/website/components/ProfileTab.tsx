@@ -15,8 +15,13 @@ export default function ProfileTab({
   onClearHistory,
   onLogout,
 }: ProfileTabProps) {
-  const [userName, setUserName] = useState<string>("Yash V.");
-  const [phone, setPhone] = useState<string>("+1 (555) 019-2834");
+  const storedFirstName = localStorage.getItem("vault_user_first_name") || "";
+  const storedLastName = localStorage.getItem("vault_user_last_name") || "";
+  const storedFullName = (storedFirstName || storedLastName) ? `${storedFirstName} ${storedLastName}`.trim() : "Yash V.";
+  const storedPhone = localStorage.getItem("vault_user_phone") || "+1 (555) 019-2834";
+
+  const [userName, setUserName] = useState<string>(storedFullName);
+  const [phone, setPhone] = useState<string>(storedPhone);
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
   return (
@@ -63,7 +68,7 @@ export default function ProfileTab({
 
               <div className="space-y-1">
                 <span className="text-[9px] text-[#575f65] font-bold tracking-widest uppercase">
-                  TELECOMMUNICATION LINK
+                  PHONE NUMBER
                 </span>
                 {isEditing ? (
                   <input
@@ -184,7 +189,7 @@ export default function ProfileTab({
                         {order.status}
                       </span>
                       <span className="font-mono text-sm font-bold text-[#141b2b]">
-                        ${order.total}
+                        Rs. {order.total}
                       </span>
                     </div>
                   </div>
@@ -198,7 +203,7 @@ export default function ProfileTab({
                           <span className="text-[#141b2b] uppercase font-semibold">{item.productName}</span>
                           <span className="text-[#575f65]/60">SIZE: {item.size}</span>
                         </div>
-                        <span className="text-[#141b2b]">${item.price * item.quantity}</span>
+                        <span className="text-[#141b2b]">Rs. {item.price * item.quantity}</span>
                       </div>
                     ))}
                   </div>

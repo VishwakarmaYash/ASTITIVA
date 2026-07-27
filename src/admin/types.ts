@@ -4,12 +4,14 @@ export interface Product {
   sku: string;
   category: string;
   price: number;
+  compareAtPrice?: number;
   stock: number;
   status: 'Active' | 'Draft' | 'Archived';
   image: string;
   description: string;
   sizes: string[];
   colors: string[]; // hex codes or color names
+  images?: string[];
 }
 
 export interface OrderItem {
@@ -17,6 +19,7 @@ export interface OrderItem {
   sku: string;
   price: number;
   quantity: number;
+  customization?: any;
 }
 
 export interface Order {
@@ -30,6 +33,7 @@ export interface Order {
   paymentStatus: 'Paid' | 'Pending' | 'Refunded';
   orderStatus: 'Processing' | 'Shipped' | 'Delivered' | 'On Hold';
   items?: OrderItem[];
+  shippingAddress?: string;
 }
 
 export interface ActivityTimelineItem {
@@ -54,4 +58,20 @@ export interface Customer {
   timeline?: ActivityTimelineItem[];
 }
 
-export type ActiveTab = 'dashboard' | 'products' | 'orders' | 'customers';
+export type ActiveTab = 'dashboard' | 'products' | 'orders' | 'customers' | 'banners';
+
+export interface Banner {
+  id?: string;
+  title: string | null;
+  description: string | null;
+  imageUrl: string;
+  buttonText: string;
+  buttonLink: string;
+  location: string;
+  startDate: string | null;
+  endDate: string | null;
+  isActive: boolean;
+  priority: number;
+  createdAt?: string;
+  updatedAt?: string;
+}

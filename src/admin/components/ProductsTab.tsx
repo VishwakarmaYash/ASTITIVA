@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Download, Plus, Edit, Trash2, X, Upload, Check } from 'lucide-react';
 import { Product } from '../types';
+import { productsAPI } from '../../api/client';
 
 interface ProductsTabProps {
   products: Product[];
@@ -36,12 +37,15 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
   const [formSku, setFormSku] = useState('');
   const [formCategory, setFormCategory] = useState('Accessories');
   const [formPrice, setFormPrice] = useState('');
+  const [formCompareAtPrice, setFormCompareAtPrice] = useState('');
   const [formStock, setFormStock] = useState('');
   const [formStatus, setFormStatus] = useState<'Active' | 'Draft'>('Active');
   const [formImage, setFormImage] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formSizes, setFormSizes] = useState<string[]>(['Medium']);
   const [formColors, setFormColors] = useState<string[]>(['#000000']);
+  const [formImages, setFormImages] = useState<string[]>([]);
+  const [galleryUrlInput, setGalleryUrlInput] = useState<string>('');
 
   // Filters calculation
   const filteredProducts = products.filter((p) => {
@@ -70,12 +74,15 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
     setFormSku(`VL-${Math.floor(10000 + Math.random() * 90000)}`);
     setFormCategory('Accessories');
     setFormPrice('');
+    setFormCompareAtPrice('');
     setFormStock('');
     setFormStatus('Active');
     setFormImage(PRESET_IMAGES[0].url);
     setFormDescription('');
     setFormSizes(['Medium']);
     setFormColors(['#000000']);
+    setFormImages([]);
+    setGalleryUrlInput('');
     setIsDrawerOpen(true);
   };
 
@@ -85,23 +92,31 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
     setFormSku(product.sku);
     setFormCategory(product.category);
     setFormPrice(product.price.toString());
+    setFormCompareAtPrice(product.compareAtPrice ? product.compareAtPrice.toString() : '');
     setFormStock(product.stock.toString());
     setFormStatus(product.status === 'Active' ? 'Active' : 'Draft');
     setFormImage(product.image);
     setFormDescription(product.description);
     setFormSizes(product.sizes);
     setFormColors(product.colors);
+    setFormImages(product.images || []);
+    setGalleryUrlInput('');
     setIsDrawerOpen(true);
   };
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteProduct = async (id: string) => {
     if (confirm('Are you sure you want to delete this exquisite product from the luxury inventory?')) {
-      const updated = products.filter((p) => p.id !== id);
-      setProducts(updated);
+      try {
+        await productsAPI.deleteProduct(id);
+        const updated = products.filter((p) => p.id !== id);
+        setProducts(updated);
+      } catch (e: any) {
+        alert('Failed to delete product: ' + e.message);
+      }
     }
   };
 
-  const handleSaveProduct = (e: FormEvent) => {
+  const handleSaveProduct = async (e: FormEvent) => {
     e.preventDefault();
     if (!formName || !formPrice) {
       alert('Please fill out Product Name and Price.');
@@ -109,49 +124,105 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
     }
 
     const priceNum = parseFloat(formPrice) || 0;
+    const compareAtPriceNum = formCompareAtPrice.trim() ? parseFloat(formCompareAtPrice) || 0 : undefined;
     const stockNum = parseInt(formStock) || 0;
+
+    // Auto-append any untracked text in galleryUrlInput
+    let finalImages = [...formImages];
+    if (galleryUrlInput.trim()) {
+      finalImages.push(galleryUrlInput.trim());
+      setFormImages(finalImages);
+      setGalleryUrlInput('');
+    }
 
     if (editingProduct) {
       // Edit mode
-      const updated = products.map((p) =>
-        p.id === editingProduct.id
-          ? {
-              ...p,
-              name: formName,
-              sku: formSku,
-              category: formCategory,
-              price: priceNum,
-              stock: stockNum,
-              status: formStatus,
-              image: formImage || PRESET_IMAGES[0].url,
-              description: formDescription,
-              sizes: formSizes,
-              colors: formColors,
-            }
-          : p
-      );
-      setProducts(updated);
-      alert('Product updated successfully.');
+      const updatedProd = {
+        id: editingProduct.id,
+        name: formName,
+        price: priceNum,
+        compareAtPrice: compareAtPriceNum,
+        description: formDescription,
+        category: formCategory,
+        image: formImage || PRESET_IMAGES[0].url,
+        colorCode: formColors[0] || '',
+        features: (editingProduct as any).features || [],
+        specs: (editingProduct as any).specs || [],
+        sizes: formSizes,
+        inventory: stockNum,
+        images: finalImages
+      };
+
+      try {
+        await productsAPI.updateProduct(editingProduct.id, updatedProd);
+        const updated = products.map((p) =>
+          p.id === editingProduct.id
+            ? {
+                ...p,
+                name: formName,
+                sku: formSku,
+                category: formCategory,
+                price: priceNum,
+                compareAtPrice: compareAtPriceNum,
+                stock: stockNum,
+                status: formStatus,
+                image: formImage || PRESET_IMAGES[0].url,
+                description: formDescription,
+                sizes: formSizes,
+                colors: formColors,
+                images: finalImages
+              }
+            : p
+        );
+        setProducts(updated);
+        alert('Product updated successfully.');
+        setIsDrawerOpen(false);
+      } catch (e: any) {
+        alert('Failed to update product: ' + e.message);
+      }
     } else {
       // Create mode
-      const newProduct: Product = {
-        id: Date.now().toString(),
+      const generatedId = formName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const newProductPayload = {
+        id: generatedId,
         name: formName,
-        sku: formSku,
-        category: formCategory,
         price: priceNum,
-        stock: stockNum,
-        status: formStatus,
-        image: formImage || PRESET_IMAGES[0].url,
+        compareAtPrice: compareAtPriceNum,
         description: formDescription,
+        category: formCategory,
+        image: formImage || PRESET_IMAGES[0].url,
+        colorCode: formColors[0] || '',
+        features: [],
+        specs: [],
         sizes: formSizes,
-        colors: formColors,
+        inventory: stockNum,
+        images: finalImages
       };
-      setProducts([newProduct, ...products]);
-      alert('Product created and cataloged in the Vault.');
-    }
 
-    setIsDrawerOpen(false);
+      try {
+        await productsAPI.createProduct(newProductPayload);
+        const newProduct: Product = {
+          id: generatedId,
+          name: formName,
+          sku: formSku,
+          category: formCategory,
+          price: priceNum,
+          compareAtPrice: compareAtPriceNum,
+          stock: stockNum,
+          status: formStatus,
+          image: formImage || PRESET_IMAGES[0].url,
+          description: formDescription,
+          sizes: formSizes,
+          colors: formColors,
+          images: finalImages
+        };
+        setProducts([newProduct, ...products]);
+        alert('Product created and cataloged in Astitiva.');
+        setIsDrawerOpen(false);
+      } catch (e: any) {
+        alert('Failed to create product: ' + e.message);
+      }
+    }
   };
 
   const handleExport = () => {
@@ -284,8 +355,17 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
                           {p.category}
                         </span>
                       </td>
-                      <td className="px-6 py-5 font-mono text-sm text-black font-semibold">
-                        ${p.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#141b2b] font-mono">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-black">
+                            Rs. {p.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                          {p.compareAtPrice && p.compareAtPrice > p.price && (
+                            <span className="text-xs text-[#6E6E73] line-through font-normal">
+                              Rs. {p.compareAtPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-2">
@@ -557,15 +637,72 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
                       placeholder="https://example.com/luxury-image.jpg"
                     />
                   </div>
+
+                  {/* Additional Photos URL List */}
+                  <div className="space-y-3 mt-4">
+                    <label className="text-[11px] font-bold text-[#6E6E73] uppercase tracking-wider block">
+                      Additional Photos (URLs)
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={galleryUrlInput}
+                        onChange={(e) => setGalleryUrlInput(e.target.value)}
+                        placeholder="https://example.com/gallery-image.jpg"
+                        className="flex-grow bg-white border border-[#E5E7EB] rounded-lg px-4 py-2 focus:ring-1 focus:ring-[#005cba] outline-hidden text-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (galleryUrlInput.trim()) {
+                              setFormImages([...formImages, galleryUrlInput.trim()]);
+                              setGalleryUrlInput('');
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (galleryUrlInput.trim()) {
+                            setFormImages([...formImages, galleryUrlInput.trim()]);
+                            setGalleryUrlInput('');
+                          }
+                        }}
+                        className="px-4 py-2 bg-black text-white rounded-lg text-xs font-semibold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    {/* List of registered image previews */}
+                    <div className="flex flex-wrap gap-2.5 p-2 bg-[#FBFBFC] border border-[#E5E7EB] rounded-lg min-h-[50px]">
+                      {formImages.map((url, index) => (
+                        <div key={index} className="relative w-12 h-12 rounded-md overflow-hidden border border-gray-200 group animate-fadeIn">
+                          <img referrerPolicy="no-referrer" src={url} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setFormImages(formImages.filter((_, i) => i !== index))}
+                            className="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            title="Remove image"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      {formImages.length === 0 && (
+                        <span className="text-xs text-[#6E6E73]/50 italic self-center">No additional photos added.</span>
+                      )}
+                    </div>
+                  </div>
                 </section>
 
                 {/* Pricing & Stock */}
                 <section className="space-y-4">
                   <p className="text-xs font-bold text-[#005cba] uppercase tracking-wider">Pricing & Inventory</p>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="text-[11px] font-bold text-[#6E6E73] uppercase tracking-wider mb-1 block">
-                        Base Price ($) *
+                        Base Price (Rs) *
                       </label>
                       <input
                         type="number"
@@ -574,6 +711,18 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
                         onChange={(e) => setFormPrice(e.target.value)}
                         className="w-full bg-white border border-[#E5E7EB] rounded-lg px-4 py-2.5 focus:ring-1 focus:ring-[#005cba] outline-hidden text-sm"
                         placeholder="0.00"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-[#6E6E73] uppercase tracking-wider mb-1 block">
+                        Compare At Price (Rs)
+                      </label>
+                      <input
+                        type="number"
+                        value={formCompareAtPrice}
+                        onChange={(e) => setFormCompareAtPrice(e.target.value)}
+                        className="w-full bg-white border border-[#E5E7EB] rounded-lg px-4 py-2.5 focus:ring-1 focus:ring-[#005cba] outline-hidden text-sm"
+                        placeholder="e.g. 2499"
                       />
                     </div>
                     <div>

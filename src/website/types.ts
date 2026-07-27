@@ -2,6 +2,7 @@ export interface Product {
   id: string;
   name: string;
   price: number;
+  compareAtPrice?: number;
   colorCode: string;
   image: string;
   description: string;
@@ -9,6 +10,7 @@ export interface Product {
   features: string[];
   specs: string[];
   sizes: string[];
+  images: string[];
 }
 
 export interface CartItem {
@@ -33,4 +35,20 @@ export interface Order {
   }[];
   total: number;
   status: "Processing" | "Shipped" | "Delivered";
+}
+
+export interface Banner {
+  id?: string;
+  title: string | null;
+  description: string | null;
+  imageUrl: string;
+  buttonText: string;
+  buttonLink: string;
+  location: string;
+  startDate: string | null;
+  endDate: string | null;
+  isActive: boolean;
+  priority: number;
+  createdAt?: string;
+  updatedAt?: string;
 }

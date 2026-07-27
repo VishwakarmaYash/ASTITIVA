@@ -4,6 +4,7 @@ export interface Product {
   id: string;
   name: string;
   price: number;
+  compareAtPrice?: number;
   description: string;
   colorCode: string;
   category: string;
@@ -12,6 +13,7 @@ export interface Product {
   specs: string[];
   sizes: string[];
   inventory: number;
+  images: string[];
 }
 
 export const getAllProducts = async () => {

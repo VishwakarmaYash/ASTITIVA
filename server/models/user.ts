@@ -4,6 +4,7 @@ import { supabase } from '../config/database';
 export interface User {
   id: string;
   email: string;
+  role?: string;
   firstName?: string;
   lastName?: string;
   phone?: string;
@@ -13,7 +14,7 @@ export interface User {
   postalCode?: string;
 }
 
-export const createUser = async (email: string, password: string) => {
+export const createUser = async (email: string, password: string, firstName?: string, lastName?: string, phone?: string) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -23,6 +24,10 @@ export const createUser = async (email: string, password: string) => {
         {
           email,
           password_hash: hashedPassword,
+          role: 'user',
+          first_name: firstName,
+          last_name: lastName,
+          phone: phone
         },
       ])
       .select()
@@ -83,6 +88,53 @@ export const updateUserProfile = async (userId: string, updates: Partial<User>) 
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getAllUsers = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteUser = async (userId: string) => {
+  try {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateUserPassword = async (email: string, passwordHash: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        password_hash: passwordHash,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('email', email)
       .select()
       .single();
 

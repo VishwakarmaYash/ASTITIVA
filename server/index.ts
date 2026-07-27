@@ -7,8 +7,20 @@ import productRoutes from './routes/products';
 import cartRoutes from './routes/cart';
 import orderRoutes from './routes/orders';
 import wishlistRoutes from './routes/wishlist';
+import bannerRoutes from './routes/banners';
+import shippingRoutes from './routes/shipping';
+// import adminMiddleware from './middleware/admin'; // admin middleware (unused for now)
 
+// Load environment variables
 dotenv.config({ path: '.env.local' });
+
+// Validate required environment variables (no fallbacks)
+const requiredEnv = ['JWT_SECRET'];
+const missingEnv = requiredEnv.filter((key) => !process.env[key]);
+if (missingEnv.length > 0) {
+  console.error('Missing required env vars:', missingEnv.join(', '));
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -18,7 +30,6 @@ app.use(cors({
   origin: process.env.VITE_APP_URL || ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
 }));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -31,21 +42,25 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/banners', bannerRoutes);
+app.use('/api/shipping', shippingRoutes);
+// Example admin-protected route (uncomment and add routes as needed)
+// app.use('/api/admin', adminMiddleware, adminRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'Server is running' });
-});
+app.get('/api/health', (req, res) =>
+  res.json({ status: 'Server is running' })
+);
 
 // 404 handler for API routes
-app.use('/api', (req, res) => {
-  res.status(404).json({ error: 'API endpoint not found' });
-});
+app.use('/api', (req, res) =>
+  res.status(404).json({ error: 'API endpoint not found' })
+);
 
 // Catch-all for non-API routes
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
+app.use((req, res) =>
+  res.status(404).json({ error: 'Not found' })
+);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -1,15 +1,14 @@
 import { Router, Response } from 'express';
-import Stripe from 'stripe';
-import { createOrder, getUserOrders, getOrderById } from '../models/order';
+// import Stripe from 'stripe'; // Stripe integration removed
+import { createOrder, getUserOrders, getOrderById, getAllOrders, updateOrderStatus } from '../models/order';
 import { supabase } from '../config/database';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { requireAdmin } from '../middleware/admin';
+import { getShippingConfig } from '../models/shipping';
 
 const router = Router();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16',
-});
 
-// Create checkout session
+// Create order from cart (no Stripe integration)
 router.post('/checkout', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { cart, shippingAddress } = req.body;
@@ -18,43 +17,23 @@ router.post('/checkout', authMiddleware, async (req: AuthRequest, res: Response)
       return res.status(400).json({ error: 'Cart is empty' });
     }
 
-    // Calculate totals
+    // Server-side price calculation
     const subtotal = cart.reduce((sum: number, item: any) => sum + item.products.price * item.quantity, 0);
     const tax = Math.round(subtotal * 0.1 * 100) / 100; // 10% tax
-    const shipping = subtotal > 100 ? 0 : 10; // Free shipping over $100
+    
+    // Load dynamic shipping config
+    const shippingConfig = await getShippingConfig();
+    const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.baseShippingFee;
+    
     const total = subtotal + tax + shipping;
 
-    // Create Stripe session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'payment',
-      success_url: `${process.env.VITE_APP_URL || 'http://localhost:3000'}/order-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.VITE_APP_URL || 'http://localhost:3000'}/cart`,
-      customer_email: req.email,
-      line_items: cart.map((item: any) => ({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `${item.products.name} - Size ${item.size}`,
-            description: item.products.description,
-            images: [item.products.image],
-          },
-          unit_amount: Math.round(item.products.price * 100), // Stripe uses cents
-        },
-        quantity: item.quantity,
-      })),
-      metadata: {
-        userId: req.userId,
-      },
-    });
-
-    // Create pending order
     const orderItems = cart.map((item: any) => ({
       productId: item.product_id,
       productName: item.products.name,
       size: item.size,
       quantity: item.quantity,
       price: item.products.price,
+      customization: item.customization || null,
     }));
 
     const order = await createOrder(
@@ -67,19 +46,21 @@ router.post('/checkout', authMiddleware, async (req: AuthRequest, res: Response)
       shippingAddress || ''
     );
 
-    res.json({
-      sessionId: session.id,
-      orderId: order.id,
-    });
+    // Return order confirmation
+    res.json({ orderId: order.id, total, tax, shipping, subtotal });
   } catch (error) {
-    console.error('Checkout error:', error);
-    res.status(500).json({ error: 'Failed to create checkout session' });
+    console.error('Order creation error:', error);
+    res.status(500).json({ error: 'Failed to create order' });
   }
 });
 
-// Get user orders
+// Get user orders (or all orders if admin)
 router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
+    if (req.role === 'admin') {
+      const orders = await getAllOrders();
+      return res.json(orders);
+    }
     const orders = await getUserOrders(req.userId!);
     res.json(orders);
   } catch (error) {
@@ -99,7 +80,7 @@ router.get('/:orderId', authMiddleware, async (req: AuthRequest, res: Response) 
     }
 
     // Check authorization
-    if (order.user_id !== req.userId) {
+    if (order.user_id !== req.userId && req.role !== 'admin') {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
@@ -110,29 +91,38 @@ router.get('/:orderId', authMiddleware, async (req: AuthRequest, res: Response) 
   }
 });
 
-// Stripe webhook
-router.post('/webhook', async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-
+// Update order status (admin only)
+router.put('/:orderId/status', authMiddleware, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
-    const event = stripe.webhooks.constructEvent(
-      req.body,
-      sig as string,
-      process.env.STRIPE_WEBHOOK_SECRET || ''
-    );
+    const { orderId } = req.params;
+    const { status } = req.body;
 
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session;
-      
-      // Update order status
-      // Implementation depends on how you link session to order
-      console.log('Payment successful:', session.id);
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
     }
 
-    res.json({ received: true });
+    const updatedOrder = await updateOrderStatus(orderId, status);
+    res.json(updatedOrder);
   } catch (error) {
-    console.error('Webhook error:', error);
-    res.status(400).json({ error: 'Webhook failed' });
+    console.error('Update order status error:', error);
+    res.status(500).json({ error: 'Failed to update order status' });
+  }
+});
+
+// Delete an order (admin only)
+router.delete('/:orderId', authMiddleware, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', orderId);
+
+    if (error) throw error;
+    res.json({ success: true, message: 'Order deleted successfully' });
+  } catch (error) {
+    console.error('Delete order error:', error);
+    res.status(500).json({ error: 'Failed to delete order' });
   }
 });
 

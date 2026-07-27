@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Download, Filter, Eye, Trash2, X, ShoppingBag, DollarSign } from 'lucide-react';
 import { Order } from '../types';
+import { ordersAPI } from '../../api/client';
 
 interface OrdersTabProps {
   orders: Order[];
@@ -33,22 +34,37 @@ export default function OrdersTab({ orders, setOrders, searchQuery }: OrdersTabP
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleDeleteOrder = (id: string) => {
+  const handleDeleteOrder = async (id: string) => {
     if (confirm('Are you sure you want to retract this transaction record?')) {
-      setOrders(orders.filter((o) => o.id !== id));
-      if (selectedOrder?.id === id) {
-        setSelectedOrder(null);
+      try {
+        await ordersAPI.deleteOrder(id);
+        setOrders(orders.filter((o) => o.id !== id));
+        if (selectedOrder?.id === id) {
+          setSelectedOrder(null);
+        }
+      } catch (e: any) {
+        alert('Failed to delete order: ' + e.message);
       }
     }
   };
 
-  const handleUpdateOrderStatus = (id: string, newStatus: Order['orderStatus']) => {
-    const updated = orders.map((o) =>
-      o.id === id ? { ...o, orderStatus: newStatus } : o
-    );
-    setOrders(updated);
-    if (selectedOrder?.id === id) {
-      setSelectedOrder({ ...selectedOrder, orderStatus: newStatus });
+  const handleUpdateOrderStatus = async (id: string, newStatus: Order['orderStatus']) => {
+    try {
+      const dbStatus = newStatus === 'Processing' ? 'processing' :
+                       newStatus === 'Shipped' ? 'shipped' :
+                       newStatus === 'Delivered' ? 'delivered' : 'cancelled';
+
+      await ordersAPI.updateStatus(id, dbStatus);
+      
+      const updated = orders.map((o) =>
+        o.id === id ? { ...o, orderStatus: newStatus } : o
+      );
+      setOrders(updated);
+      if (selectedOrder?.id === id) {
+        setSelectedOrder({ ...selectedOrder, orderStatus: newStatus });
+      }
+    } catch (e: any) {
+      alert('Failed to update order status: ' + e.message);
     }
   };
 
@@ -339,16 +355,79 @@ export default function OrdersTab({ orders, setOrders, searchQuery }: OrdersTabP
                   </div>
                 </div>
 
+                {/* Delivery Address */}
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-[#005cba] uppercase tracking-wider">Delivery Address</p>
+                  <div className="bg-[#FBFBFC] border border-[#E5E7EB] rounded-xl p-4 font-sans text-xs text-black space-y-1">
+                    {(() => {
+                      if (!selectedOrder.shippingAddress) {
+                        return <p className="text-[#6E6E73] italic">No physical destination details recorded.</p>;
+                      }
+                      try {
+                        const addr = JSON.parse(selectedOrder.shippingAddress);
+                        return (
+                          <>
+                            <p className="font-semibold">{addr.houseFlat}, {addr.streetAddress}</p>
+                            <p>{addr.areaLocality}</p>
+                            {addr.landmark && <p className="text-gray-500 italic">Landmark: {addr.landmark}</p>}
+                            <p>{addr.city}, {addr.stateProvince} - {addr.pinZipCode}</p>
+                            <p className="font-medium tracking-wide uppercase mt-1">{addr.country}</p>
+                          </>
+                        );
+                      } catch (_) {
+                        return <p className="whitespace-pre-wrap">{selectedOrder.shippingAddress}</p>;
+                      }
+                    })()}
+                  </div>
+                </div>
+
                 {/* Items Purchased */}
                 <div className="space-y-4">
                   <p className="text-xs font-bold text-[#005cba] uppercase tracking-wider">Purchased Pieces</p>
                   <div className="border border-[#E5E7EB] rounded-xl overflow-hidden divide-y divide-[#E5E7EB]">
                     {selectedOrder.items && selectedOrder.items.length > 0 ? (
                       selectedOrder.items.map((item, idx) => (
-                        <div key={idx} className="p-4 flex justify-between items-center bg-white">
+                        <div key={idx} className="p-4 flex justify-between items-start bg-white gap-4">
                           <div>
                             <p className="font-semibold text-sm text-black">{item.productName}</p>
                             <p className="text-xs text-[#6E6E73] font-mono mt-0.5">SKU: {item.sku}</p>
+                            {item.customization && (
+                              <div className="mt-2 bg-[#F9F9FB] border border-dashed border-[#E5E7EB] p-3 text-left space-y-1.5 max-w-md">
+                                <span className="inline-block bg-black text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 mb-1">
+                                  Custom print piece
+                                </span>
+                                <div className="text-[10px] text-black">
+                                  <span className="font-bold uppercase text-[#6E6E73]">Type:</span> {item.customization.apparelType === 'tee' ? 'Streetwear Tee' : 'Oversized Hoodie'}
+                                </div>
+                                <div className="text-[10px] text-black">
+                                  <span className="font-bold uppercase text-[#6E6E73]">Color:</span> {item.customization.color}
+                                </div>
+                                <div className="text-[10px] text-black">
+                                  <span className="font-bold uppercase text-[#6E6E73]">Placement:</span> {item.customization.placement?.toUpperCase()}
+                                </div>
+                                {item.customization.customText && (
+                                  <div className="text-[10px] text-black">
+                                    <span className="font-bold uppercase text-[#6E6E73]">Text:</span> "{item.customization.customText}" (Font: {item.customization.fontFamily})
+                                  </div>
+                                )}
+                                {item.customization.designImage && (
+                                  <div className="pt-2 border-t border-[#E5E7EB] flex items-center gap-2">
+                                    <img 
+                                      src={item.customization.designImage} 
+                                      alt="Design Logo Thumbnail" 
+                                      className="w-8 h-8 object-contain bg-white border border-[#E5E7EB]" 
+                                    />
+                                    <a 
+                                      href={item.customization.designImage} 
+                                      download={`custom-design-${selectedOrder.id}-${idx}.png`}
+                                      className="text-[9px] font-bold text-[#005cba] hover:underline uppercase tracking-wider"
+                                    >
+                                      Download Artwork
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-semibold text-black">
