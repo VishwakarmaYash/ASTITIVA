@@ -27,7 +27,10 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: process.env.VITE_APP_URL || ['http://localhost:5173', 'http://localhost:3000'],
+  origin: (origin, callback) => {
+    // Allow all origins to support Vercel preview domains, local tunnels, and custom domains
+    callback(null, true);
+  },
   credentials: true,
 }));
 app.use(express.json());
