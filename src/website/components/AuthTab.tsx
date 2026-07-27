@@ -393,21 +393,6 @@ export default function AuthTab({ onAuthSuccess }: AuthTabProps) {
             </div>
           </div>
         </form>
-
-        {/* Info Box */}
-        {authState === 'login' && (
-          <div className="mt-10 p-4 bg-[#f9f9ff] border border-black/5 rounded-none space-y-2">
-            <p className="font-mono text-[9px] text-[#575f65] tracking-widest uppercase font-bold">
-              TEST CREDENTIALS
-            </p>
-            <p className="font-mono text-[10px] text-[#141b2b]">
-              Email: <span className="font-semibold">test@astitiva.com</span>
-            </p>
-            <p className="font-mono text-[10px] text-[#141b2b]">
-              Password: <span className="font-semibold">test123</span>
-            </p>
-          </div>
-        )}
       </div>
     </section>
   );
