@@ -170,6 +170,18 @@ export const ordersAPI = {
       body: { cart, shippingAddress },
     }),
 
+  createRazorpayOrder: (cart: any[], shippingAddress: string, promoCode: string) =>
+    apiCall('/orders/razorpay/create', {
+      method: 'POST',
+      body: { cart, shippingAddress, promoCode },
+    }),
+
+  verifyRazorpayPayment: (orderId: string, razorpayPaymentId: string, razorpayOrderId: string, razorpaySignature: string) =>
+    apiCall('/orders/razorpay/verify', {
+      method: 'POST',
+      body: { orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature },
+    }),
+
   getAll: () => apiCall('/orders'),
 
   getById: (orderId: string) => apiCall(`/orders/${orderId}`),

@@ -920,9 +920,29 @@ export default function WebsiteApp() {
     }
   };
 
+  // Dynamically load Razorpay Checkout Script
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   // Checkout Protocol finalization
   const handleCheckout = async (address: string, promoCode: string) => {
     try {
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        throw new Error("Razorpay SDK failed to load. Check your internet connection.");
+      }
+
       const apiCartItems = cart.map(item => ({
         product_id: item.product.id,
         size: item.size,
@@ -930,23 +950,47 @@ export default function WebsiteApp() {
         products: {
           name: item.product.name,
           price: item.product.price
-        }
+        },
+        customization: item.customization || null
       }));
 
-      const subtotal = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-      const activeCoupon = (shippingConfig.couponCode || "ASTITIVA10").toUpperCase();
-      const activePopup = (shippingConfig.popupDiscountCode || "VAULT10").toUpperCase();
-      const promoApplied = promoCode.toUpperCase() === "GLACIER" || promoCode.toUpperCase() === activeCoupon || promoCode.toUpperCase() === activePopup;
-      const discountFactor = promoCode.toUpperCase() === "GLACIER" ? 0.15 : (promoCode.toUpperCase() === activeCoupon || promoCode.toUpperCase() === activePopup) ? 0.10 : 0;
-      const discount = promoApplied ? subtotal * discountFactor : 0;
-      const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.baseShippingFee;
-      const total = subtotal - discount + shipping;
+      // Initialize Razorpay checkout order on backend
+      const rzData = await ordersAPI.createRazorpayOrder(apiCartItems, address || 'No Address Provided', promoCode);
 
-      await ordersAPI.checkout(apiCartItems, address || 'No Address Provided');
-      await cartAPI.clear();
-      
-      triggerToast("TRANSACTION COMPLETED SUCCESSFULLY");
-      await fetchDatabaseState();
+      const options = {
+        key: rzData.keyId,
+        amount: rzData.amount,
+        currency: rzData.currency,
+        name: "ASTITIVA",
+        description: "Streetwear Purchase Checkout",
+        image: "/images/astitiva_white_tee.png",
+        order_id: rzData.razorpayOrderId,
+        handler: async function (response: any) {
+          try {
+            await ordersAPI.verifyRazorpayPayment(
+              rzData.orderId,
+              response.razorpay_payment_id,
+              response.razorpay_order_id,
+              response.razorpay_signature
+            );
+            await cartAPI.clear();
+            triggerToast("TRANSACTION COMPLETED SUCCESSFULLY");
+            await fetchDatabaseState();
+          } catch (verifyError: any) {
+            triggerToast("PAYMENT VERIFICATION FAILED: " + verifyError.message.toUpperCase());
+          }
+        },
+        prefill: {
+          email: userEmail || "",
+          contact: ""
+        },
+        theme: {
+          color: "#008080" // Matches signature teal header
+        }
+      };
+
+      const rz = new (window as any).Razorpay(options);
+      rz.open();
     } catch (e: any) {
       triggerToast("CHECKOUT FAILED: " + e.message.toUpperCase());
     }
