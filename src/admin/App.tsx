@@ -55,8 +55,9 @@ export default function App() {
         phone: ord.users?.phone || '',
         date: new Date(ord.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         amount: Number(ord.total),
-        paymentStatus: ord.status === 'cancelled' ? 'Pending' : 'Paid',
-        orderStatus: ord.status === 'pending' || ord.status === 'processing' ? 'Processing' :
+        paymentStatus: (ord.status === 'pending' || ord.status === 'cancelled') ? 'Pending' : 'Paid',
+        orderStatus: ord.status === 'pending' ? 'On Hold' :
+                     ord.status === 'processing' ? 'Processing' :
                      ord.status === 'shipped' ? 'Shipped' :
                      ord.status === 'delivered' ? 'Delivered' : 'On Hold',
         items: (ord.order_items || []).map((item: any) => ({
