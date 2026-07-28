@@ -20,13 +20,13 @@ router.post('/checkout', authMiddleware, async (req: AuthRequest, res: Response)
 
     // Server-side price calculation
     const subtotal = cart.reduce((sum: number, item: any) => sum + item.products.price * item.quantity, 0);
-    const tax = Math.round(subtotal * 0.1 * 100) / 100; // 10% tax
+    const tax = 0; // Prices are GST inclusive
     
     // Load dynamic shipping config
     const shippingConfig = await getShippingConfig();
     const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.baseShippingFee;
     
-    const total = subtotal + tax + shipping;
+    const total = subtotal + shipping;
 
     const orderItems = cart.map((item: any) => ({
       productId: item.product_id,
@@ -138,7 +138,7 @@ router.post('/razorpay/create', authMiddleware, async (req: AuthRequest, res: Re
 
     // Server-side price calculation
     const subtotal = cart.reduce((sum: number, item: any) => sum + item.products.price * item.quantity, 0);
-    const tax = Math.round(subtotal * 0.1 * 100) / 100; // 10% tax
+    const tax = 0; // Prices are GST inclusive
     
     // Load dynamic shipping config
     const shippingConfig = await getShippingConfig();
@@ -156,7 +156,7 @@ router.post('/razorpay/create', authMiddleware, async (req: AuthRequest, res: Re
     }
     const discount = subtotal * discountPercent;
     const shipping = (subtotal - discount) >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.baseShippingFee;
-    const total = subtotal + tax - discount + shipping;
+    const total = subtotal - discount + shipping;
 
     const keyId = process.env.RAZORPAY_KEY_ID || '';
     const keySecret = process.env.RAZORPAY_KEY_SECRET || '';
