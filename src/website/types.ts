@@ -3,14 +3,15 @@ export interface Product {
   name: string;
   price: number;
   compareAtPrice?: number;
-  colorCode: string;
+  colorCode?: string;
   image: string;
   description: string;
-  category: "Jackets" | "Pants" | "Footwear" | "Accessories";
-  features: string[];
-  specs: string[];
+  category: "Jackets" | "Pants" | "Footwear" | "Accessories" | "T-Shirts" | "Customs" | string;
+  features?: string[];
+  specs?: string[];
   sizes: string[];
-  images: string[];
+  images?: string[];
+  inventory?: number;
 }
 
 export interface CartItem {
@@ -18,6 +19,7 @@ export interface CartItem {
   product: Product;
   size: string;
   quantity: number;
+  customization?: any;
 }
 
 export interface WishlistItem {

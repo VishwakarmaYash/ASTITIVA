@@ -15,7 +15,7 @@ export default function WishlistTab({
   onGoToArchive,
 }: WishlistTabProps) {
   return (
-    <section className="py-12 px-6 md:px-16 max-w-7xl mx-auto space-y-8 min-h-[70vh]">
+    <section className="py-12 px-4 md:px-16 max-w-7xl mx-auto space-y-8 min-h-[70vh]">
       {/* Header and Title */}
       <div className="space-y-2">
         <span className="font-mono text-[10px] tracking-[0.25em] text-[#575f65] uppercase">
@@ -49,14 +49,14 @@ export default function WishlistTab({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
           {wishlist.map((p) => (
             <div
               key={p.id}
-              className="group relative flex flex-col glass-card p-6 transition-all duration-500 hover:-translate-y-1 bg-white/20 rounded-none"
+              className="group relative flex flex-col glass-card p-3.5 sm:p-6 transition-all duration-500 hover:-translate-y-1 bg-white/20 rounded-none"
             >
               {/* Image Frame */}
-              <div className="aspect-[3/4] mb-6 overflow-hidden bg-white border border-black/5 relative">
+              <div className="aspect-[3/4] mb-4 sm:mb-6 overflow-hidden bg-white border border-black/5 relative">
                 <img
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -66,17 +66,17 @@ export default function WishlistTab({
               </div>
 
               {/* Specs block */}
-              <div className="space-y-4 flex-grow flex flex-col justify-between">
+              <div className="space-y-3 sm:space-y-4 flex-grow flex flex-col justify-between">
                 <div>
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-display font-extrabold text-lg text-[#141b2b] tracking-wider uppercase">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-2">
+                    <h3 className="font-display font-extrabold text-sm sm:text-base md:text-lg text-[#141b2b] tracking-wider uppercase line-clamp-2">
                       {p.name}
                     </h3>
-                    <span className="font-mono text-sm font-semibold tracking-wider text-[#141b2b]">
+                    <span className="font-mono text-xs sm:text-sm font-semibold tracking-wider text-[#141b2b]">
                       Rs. {p.price}
                     </span>
                   </div>
-                  <p className="font-mono text-[10px] tracking-[0.2em] text-[#575f65] uppercase mt-0.5">
+                  <p className="font-mono text-[9px] sm:text-[10px] tracking-[0.2em] text-[#575f65] uppercase mt-0.5">
                     {p.colorCode}
                   </p>
                 </div>
@@ -87,10 +87,11 @@ export default function WishlistTab({
                     id={`wishlist-view-details-${p.id}`}
                     type="button"
                     onClick={() => onViewDetails(p)}
-                    className="flex-grow flex items-center justify-center gap-1.5 bg-[#141b2b] hover:bg-[#2c3547] text-white py-3.5 font-mono text-[10px] uppercase tracking-widest font-bold transition-all rounded-none"
+                    className="flex-grow flex items-center justify-center gap-1 bg-[#141b2b] hover:bg-[#2c3547] text-white py-3.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-widest font-bold transition-all rounded-none"
                   >
                     <Eye className="w-3.5 h-3.5" />
-                    <span>Explore Specifications</span>
+                    <span className="hidden sm:inline">Explore Specifications</span>
+                    <span className="inline sm:hidden">Explore</span>
                   </button>
                   <button
                     id={`wishlist-remove-item-${p.id}`}

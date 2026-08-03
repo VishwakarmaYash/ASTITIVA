@@ -542,8 +542,8 @@
 // }
 
 // src/website/App.tsx
-import React, { useState, useEffect } from "react";
-import { Menu, ShoppingBag, Home, Search, Heart, User, ChevronRight, Check, LogOut, Settings } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Menu, ShoppingBag, Home, Search, Heart, User, ChevronLeft, ChevronRight, Check, LogOut, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import GlacialOrb from "./components/GlacialOrb";
 import ProductCard from "./components/ProductCard";
@@ -561,6 +561,51 @@ import FeaturesBanner from "./components/FeaturesBanner";
 import { PRODUCTS, PHILOSOPHY_QUOTE } from "./data";
 import { Product, CartItem, Order, Banner } from "./types";
 import { productsAPI, cartAPI, ordersAPI, wishlistAPI, bannersAPI, shippingAPI } from "../api/client";
+
+const renderCampaignCard = (item: any) => {
+  return (
+    <div
+      className="flex flex-col bg-white border border-black/5 overflow-hidden group shadow-sm hover:shadow-lg transition-all duration-300 h-full"
+    >
+      <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
+        <img
+          referrerPolicy="no-referrer"
+          src={item.imageUrl}
+          alt={item.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+        />
+        <div className={`absolute top-4 left-4 ${item.badgeBg} font-mono text-[9px] font-bold tracking-widest px-2.5 py-1 uppercase`}>
+          {item.badge}
+        </div>
+      </div>
+      <div className="p-6 md:p-8 flex flex-col justify-between flex-grow space-y-6">
+        <div className="space-y-3">
+          <div className="flex justify-between items-baseline">
+            <h3 className="font-display font-extrabold text-xl text-[#141b2b] tracking-wider uppercase truncate max-w-[70%]">
+              {item.title}
+            </h3>
+            <span className={`font-mono text-[10px] ${item.promoLabelColor} font-bold tracking-widest uppercase`}>
+              {item.promoLabel}
+            </span>
+          </div>
+          <p className="font-sans text-xs text-[#575f65] leading-relaxed line-clamp-3">
+            {item.description}
+          </p>
+        </div>
+        <div>
+          <motion.button
+            onClick={item.buttonAction}
+            whileHover={{ scale: 1.01, y: -2 }}
+            whileTap={{ scale: 0.99, y: 2 }}
+            className={`w-full ${item.buttonBg} font-mono text-[10px] font-bold py-4 px-6 border-2 border-black shadow-[4px_4px_0px_#141b2b] cursor-pointer text-center uppercase tracking-widest`}
+          >
+            {item.buttonText}
+          </motion.button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function WebsiteApp() {
   const [activeTab, setActiveTab] = useState<"home" | "search" | "wishlist" | "profile" | "auth" | "custom">("home");
@@ -581,6 +626,90 @@ export default function WebsiteApp() {
     baseShippingFee: 50.00,
     freeShippingThreshold: 1000.00,
   });
+
+  const [activeGalleryIndex, setActiveGalleryIndex] = useState<number>(1);
+
+  // Prepare Gallery Items
+  const galleryItems = useMemo(() => {
+    if (promoBanners.length > 0) {
+      return promoBanners.slice(0, 3).map((banner, index) => ({
+        id: banner.id || `promo-${index}`,
+        imageUrl: banner.imageUrl,
+        title: banner.title || 'ASTITVA DROP',
+        badge: 'CAMPAIGN DROP',
+        badgeBg: 'bg-black text-white',
+        description: banner.description || 'Exclusive drop featuring raw signatures and tailored urban fits.',
+        promoLabel: 'PROMO',
+        promoLabelColor: 'text-[#ba1a1a]',
+        buttonText: banner.buttonText,
+        buttonBg: 'bg-[#ba1a1a] text-white',
+        buttonAction: () => {
+          if (banner.buttonLink && banner.buttonLink.startsWith('#')) {
+            document.getElementById(banner.buttonLink.substring(1))?.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            document.getElementById("new-arrivals-section")?.scrollIntoView({ behavior: "smooth" });
+          }
+          triggerToast(`LOADING: ${banner.buttonText.toUpperCase()}`);
+        }
+      }));
+    }
+
+    return [
+      {
+        id: 'sig-collection',
+        imageUrl: "/images/astitva_rider.jpg",
+        title: "अस्तित्व / ASTITVA",
+        badge: "FLAGSHIP CAMPAIGN",
+        badgeBg: "bg-black text-white",
+        description: "Identity defined by existence. Heavyweight 300GSM drop featuring the raw red-on-black signature tee. Express your core.",
+        promoLabel: "SIGNATURE",
+        promoLabelColor: "text-[#ba1a1a]",
+        buttonText: "SHOP SIGNATURE TEE",
+        buttonBg: "bg-[#ba1a1a] text-white",
+        buttonAction: () => {
+          const sigProd = products.find(p => p.id === "astitva-signature-tee") || PRODUCTS.find(p => p.id === "astitva-signature-tee");
+          if (sigProd) {
+            setSelectedProduct(sigProd);
+            triggerToast("LOADING SIGNATURE CUSTOMS DETAIL");
+          } else {
+            triggerToast("SIGNATURE PRODUCT ACCESS PENDING");
+          }
+        }
+      },
+      {
+        id: 'graphic-edit',
+        imageUrl: "/images/collusion_collab.png",
+        title: "ASTITVA BACK GRAPHIC",
+        badge: "GRAPHIC DROP",
+        badgeBg: "bg-[#ccff00] text-black",
+        description: "Oversized streetwear fits. Heavyweight organic cotton featuring our signature custom fire back-graphic print and relaxed urban tailoring.",
+        promoLabel: "STREETWEAR",
+        promoLabelColor: "text-[#008080]",
+        buttonText: "CHECK NEW ARRIVALS",
+        buttonBg: "bg-[#ccff00] text-black",
+        buttonAction: () => {
+          document.getElementById("new-arrivals-section")?.scrollIntoView({ behavior: "smooth" });
+          triggerToast("SCROLLING TO SYSTEM CATALOG");
+        }
+      },
+      {
+        id: 'white-edit',
+        imageUrl: "/images/astitva_white_tee.png",
+        title: "ASTITVA WHITE TEE",
+        badge: "WHITE EDIT",
+        badgeBg: "bg-black text-white",
+        description: "A minimalist counterpart to our signature edit. Ultra-heavyweight organic cotton featuring clean branding and relaxed boxy tailoring.",
+        promoLabel: "ESSENTIALS",
+        promoLabelColor: "text-[#575f65]",
+        buttonText: "DISCOVER ESSENTIALS",
+        buttonBg: "bg-black text-white",
+        buttonAction: () => {
+          document.getElementById("new-arrivals-section")?.scrollIntoView({ behavior: "smooth" });
+          triggerToast("SCROLLING TO SYSTEM CATALOG");
+        }
+      }
+    ];
+  }, [promoBanners, products]);
 
   // Sync state from Database
   const fetchDatabaseState = async () => {
@@ -1264,230 +1393,131 @@ export default function WebsiteApp() {
                 onCopySuccess={triggerToast}
               />
 
-              {/* Featured Campaigns Grid */}
-              {promoBanners.length > 0 ? (
-                <section className="py-16 md:py-24 px-6 md:px-16 max-w-7xl mx-auto">
-                  <div className={`grid grid-cols-1 md:grid-cols-${Math.min(3, promoBanners.length)} gap-8 md:gap-10`}>
-                    {promoBanners.slice(0, 3).map((banner, index) => (
-                      <motion.div
-                        key={banner.id || index}
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.6, ease: "easeOut", delay: index * 0.15 }}
-                        className="flex flex-col bg-white border border-black/5 overflow-hidden group shadow-sm hover:shadow-lg transition-all duration-300"
-                      >
-                        <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-                          <img
-                            referrerPolicy="no-referrer"
-                            src={banner.imageUrl}
-                            alt={banner.title || 'Campaign'}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                          />
-                          <div className="absolute top-4 left-4 bg-black text-white font-mono text-[9px] font-bold tracking-widest px-2.5 py-1 uppercase">
-                            CAMPAIGN DROP
-                          </div>
-                        </div>
-                        <div className="p-6 md:p-8 flex flex-col justify-between flex-grow space-y-6">
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-baseline">
-                              <h3 className="font-display font-extrabold text-xl text-[#141b2b] tracking-wider uppercase truncate max-w-[70%]">
-                                {banner.title || 'ASTITVA DROP'}
-                              </h3>
-                              <span className="font-mono text-[10px] text-[#ba1a1a] font-bold tracking-widest uppercase">
-                                PROMO
-                              </span>
-                            </div>
-                            <p className="font-sans text-xs text-[#575f65] leading-relaxed line-clamp-3">
-                              {banner.description || 'Exclusive drop featuring raw signatures and tailored urban fits.'}
-                            </p>
-                          </div>
-                          <div>
-                            <motion.button
-                              onClick={() => {
-                                if (banner.buttonLink && banner.buttonLink.startsWith('#')) {
-                                  document.getElementById(banner.buttonLink.substring(1))?.scrollIntoView({ behavior: 'smooth' });
-                                } else {
-                                  document.getElementById("new-arrivals-section")?.scrollIntoView({ behavior: "smooth" });
-                                }
-                                triggerToast(`LOADING: ${banner.buttonText.toUpperCase()}`);
-                              }}
-                              whileHover={{ scale: 1.01, y: -2 }}
-                              whileTap={{ scale: 0.99, y: 2 }}
-                              className="w-full bg-[#ba1a1a] text-white font-mono text-[10px] font-bold py-4 px-6 border-2 border-black shadow-[4px_4px_0px_#141b2b] cursor-pointer text-center uppercase tracking-widest"
-                            >
-                              {banner.buttonText}
-                            </motion.button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </section>
-              ) : (
-                <section className="py-16 md:py-24 px-6 md:px-16 max-w-7xl mx-auto">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
-                    {/* Campaign 1: ASTITVA Signature Collection */}
-                    <motion.div 
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-100px" }}
-                      transition={{ duration: 0.6, ease: "easeOut" }}
-                      className="flex flex-col bg-white border border-black/5 overflow-hidden group shadow-sm hover:shadow-lg transition-all duration-300"
+              {/* Gallery / Featured Campaigns Section */}
+              <section id="gallery-section" className="py-16 md:py-24 px-4 md:px-16 max-w-7xl mx-auto space-y-10 md:space-y-12">
+                <div className="flex flex-col md:flex-row justify-between items-baseline gap-4 border-b border-black/5 pb-6">
+                  <h2 className="font-display font-extrabold text-2xl md:text-3xl text-[#141b2b] uppercase tracking-widest leading-none">
+                    GALLERY
+                  </h2>
+                  <span className="font-mono text-[10px] text-[#575f65] tracking-[0.25em] font-bold uppercase leading-none">
+                    FEATURED CAMPAIGNS
+                  </span>
+                </div>
+
+                {/* Desktop Grid Layout (hidden on mobile, visible on md+) */}
+                <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                  {galleryItems.map((item) => (
+                    <div key={item.id}>
+                      {renderCampaignCard(item)}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Mobile Gallery Carousel Layout (visible on mobile, hidden on md+) */}
+                <div className="block md:hidden relative w-full overflow-hidden select-none">
+                  {/* Slider Container */}
+                  <div className="relative w-full flex items-center justify-center h-[525px]">
+                    {/* Left Navigation Arrow */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveGalleryIndex((prev) => (prev === 0 ? galleryItems.length - 1 : prev - 1));
+                      }}
+                      className="absolute left-3 z-20 w-10 h-10 bg-white border-2 border-black shadow-[2px_2px_0px_#000] flex items-center justify-center rounded-none active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] transition-all cursor-pointer"
+                      aria-label="Previous Campaign"
                     >
-                      <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-                        <img 
-                          src="/images/astitva_rider.jpg" 
-                          alt="ASTITVA Signature Campaign" 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                        />
-                        <div className="absolute top-4 left-4 bg-black text-white font-mono text-[9px] font-bold tracking-widest px-2.5 py-1 uppercase">
-                          FLAGSHIP CAMPAIGN
-                        </div>
-                      </div>
-                      <div className="p-6 md:p-8 flex flex-col justify-between flex-grow space-y-6">
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-baseline">
-                            <h3 className="font-display font-extrabold text-2xl text-[#141b2b] tracking-wider uppercase">
-                              अस्तित्व / ASTITVA
-                            </h3>
-                            <span className="font-mono text-[10px] text-[#ba1a1a] font-bold tracking-widest uppercase">
-                              SIGNATURE
-                            </span>
-                          </div>
-                          <p className="font-sans text-xs text-[#575f65] leading-relaxed">
-                            Identity defined by existence. Heavyweight 300GSM drop featuring the raw red-on-black signature tee. Express your core.
-                          </p>
-                        </div>
-                        <div>
-                          <motion.button
+                      <ChevronLeft className="w-5 h-5 text-black" />
+                    </button>
+
+                    {/* Right Navigation Arrow */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveGalleryIndex((prev) => (prev === galleryItems.length - 1 ? 0 : prev + 1));
+                      }}
+                      className="absolute right-3 z-20 w-10 h-10 bg-white border-2 border-black shadow-[2px_2px_0px_#000] flex items-center justify-center rounded-none active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] transition-all cursor-pointer"
+                      aria-label="Next Campaign"
+                    >
+                      <ChevronRight className="w-5 h-5 text-black" />
+                    </button>
+
+                    {/* Cards Frame */}
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      {galleryItems.map((item, idx) => {
+                        let diff = idx - activeGalleryIndex;
+                        if (diff === 2) diff = -1;
+                        if (diff === -2) diff = 1;
+
+                        const isActive = diff === 0;
+                        const isLeft = diff === -1;
+                        const isRight = diff === 1;
+
+                        let transformStyle = "";
+                        let opacityStyle = "";
+                        let zIndexStyle = "";
+
+                        if (isActive) {
+                          transformStyle = "translateX(0px) scale(1)";
+                          opacityStyle = "opacity-100 animate-fade-in";
+                          zIndexStyle = "z-10";
+                        } else if (isLeft) {
+                          transformStyle = "translateX(-155px) scale(0.85)";
+                          opacityStyle = "opacity-60";
+                          zIndexStyle = "z-0 pointer-events-none";
+                        } else if (isRight) {
+                          transformStyle = "translateX(155px) scale(0.85)";
+                          opacityStyle = "opacity-60";
+                          zIndexStyle = "z-0 pointer-events-none";
+                        } else {
+                          transformStyle = "translateX(300px) scale(0.7)";
+                          opacityStyle = "opacity-0";
+                          zIndexStyle = "z-[-1] pointer-events-none";
+                        }
+
+                        return (
+                          <div
+                            key={item.id}
+                            style={{
+                              transform: transformStyle,
+                              transition: "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease-out",
+                            }}
+                            className={`absolute w-[240px] left-1/2 -ml-[120px] ${opacityStyle} ${zIndexStyle}`}
                             onClick={() => {
-                              const sigProd = products.find(p => p.id === "astitva-signature-tee") || PRODUCTS.find(p => p.id === "astitva-signature-tee");
-                              if (sigProd) {
-                                setSelectedProduct(sigProd);
-                                triggerToast("LOADING SIGNATURE CUSTOMS DETAIL");
-                              } else {
-                                triggerToast("SIGNATURE PRODUCT ACCESS PENDING");
+                              if (!isActive) {
+                                setActiveGalleryIndex(idx);
                               }
                             }}
-                            whileHover={{ scale: 1.01, y: -2 }}
-                            whileTap={{ scale: 0.99, y: 2 }}
-                            className="w-full bg-[#ba1a1a] text-white font-mono text-[10px] font-bold py-4 px-6 border-2 border-black shadow-[4px_4px_0px_#141b2b] cursor-pointer text-center uppercase tracking-widest"
                           >
-                            SHOP SIGNATURE TEE
-                          </motion.button>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* Campaign 2: ASTITVA Graphic Edit */}
-                    <motion.div 
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-100px" }}
-                      transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
-                      className="flex flex-col bg-white border border-black/5 overflow-hidden group shadow-sm hover:shadow-lg transition-all duration-300"
-                    >
-                      <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-                        <img 
-                          src="/images/collusion_collab.png" 
-                          alt="ASTITVA Back Graphic Campaign" 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                        />
-                        <div className="absolute top-4 left-4 bg-[#ccff00] text-black font-mono text-[9px] font-bold tracking-widest px-2.5 py-1 uppercase">
-                          GRAPHIC DROP
-                        </div>
-                      </div>
-                      <div className="p-6 md:p-8 flex flex-col justify-between flex-grow space-y-6">
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-baseline">
-                            <h3 className="font-display font-extrabold text-2xl text-[#141b2b] tracking-wider uppercase">
-                              ASTITVA BACK GRAPHIC
-                            </h3>
-                            <span className="font-mono text-[10px] text-[#008080] font-bold tracking-widest uppercase">
-                              STREETWEAR
-                            </span>
+                            {renderCampaignCard(item)}
                           </div>
-                          <p className="font-sans text-xs text-[#575f65] leading-relaxed">
-                            Oversized streetwear fits. Heavyweight organic cotton featuring our signature custom fire back-graphic print and relaxed urban tailoring.
-                          </p>
-                        </div>
-                        <div>
-                          <motion.button
-                            onClick={() => {
-                              document.getElementById("new-arrivals-section")?.scrollIntoView({ behavior: "smooth" });
-                              triggerToast("SCROLLING TO SYSTEM CATALOG");
-                            }}
-                            whileHover={{ scale: 1.01, y: -2 }}
-                            whileTap={{ scale: 0.99, y: 2 }}
-                            className="w-full bg-[#ccff00] text-black font-mono text-[10px] font-bold py-4 px-6 border-2 border-black shadow-[4px_4px_0px_#141b2b] cursor-pointer text-center uppercase tracking-widest"
-                          >
-                            CHECK NEW ARRIVALS
-                          </motion.button>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* Campaign 3: ASTITVA White Edit */}
-                    <motion.div 
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-100px" }}
-                      transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-                      className="flex flex-col bg-white border border-black/5 overflow-hidden group shadow-sm hover:shadow-lg transition-all duration-300"
-                    >
-                      <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-                        <img 
-                          src="/images/astitva_white_tee.png" 
-                          alt="ASTITVA White Edit Campaign" 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                        />
-                        <div className="absolute top-4 left-4 bg-black text-white font-mono text-[9px] font-bold tracking-widest px-2.5 py-1 uppercase">
-                          WHITE EDIT
-                        </div>
-                      </div>
-                      <div className="p-6 md:p-8 flex flex-col justify-between flex-grow space-y-6">
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-baseline">
-                            <h3 className="font-display font-extrabold text-2xl text-[#141b2b] tracking-wider uppercase">
-                              ASTITVA WHITE TEE
-                            </h3>
-                            <span className="font-mono text-[10px] text-[#575f65] font-bold tracking-widest uppercase">
-                              ESSENTIALS
-                            </span>
-                          </div>
-                          <p className="font-sans text-xs text-[#575f65] leading-relaxed">
-                            A minimalist counterpart to our signature edit. Ultra-heavyweight organic cotton featuring clean branding and relaxed boxy tailoring.
-                          </p>
-                        </div>
-                        <div>
-                          <motion.button
-                            onClick={() => {
-                              document.getElementById("new-arrivals-section")?.scrollIntoView({ behavior: "smooth" });
-                              triggerToast("SCROLLING TO SYSTEM CATALOG");
-                            }}
-                            whileHover={{ scale: 1.01, y: -2 }}
-                            whileTap={{ scale: 0.99, y: 2 }}
-                            className="w-full bg-black text-white font-mono text-[10px] font-bold py-4 px-6 border-2 border-black shadow-[4px_4px_0px_#141b2b] cursor-pointer text-center uppercase tracking-widest"
-                          >
-                            DISCOVER ESSENTIALS
-                          </motion.button>
-                        </div>
-                      </div>
-                    </motion.div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </section>
-              )}
+
+                  {/* Dot Indicators */}
+                  <div className="flex justify-center items-center gap-2.5 mt-2">
+                    {galleryItems.map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setActiveGalleryIndex(idx)}
+                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                          idx === activeGalleryIndex ? "bg-black scale-110" : "bg-black/20 hover:bg-black/40"
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
 
               {/* Product Section: NEW ARRIVALS */}
-              <section id="new-arrivals-section" className="py-24 md:py-36 px-6 md:px-16 max-w-7xl mx-auto space-y-16">
+              <section id="new-arrivals-section" className="py-16 md:py-36 px-4 md:px-16 max-w-7xl mx-auto space-y-12 md:space-y-16">
                 <div className="flex flex-col md:flex-row justify-between items-baseline gap-4 border-b border-black/5 pb-6">
                   <h2 className="font-display font-extrabold text-2xl md:text-3xl text-[#141b2b] uppercase tracking-widest leading-none">
                     NEW ARRIVALS
                   </h2>
-                  <span className="font-mono text-[10px] text-[#575f65] tracking-[0.25em] font-bold uppercase leading-none">
-                    SEASON 04 / WINTER
-                  </span>
                 </div>
 
                 {/* Products list grid */}
@@ -1501,7 +1531,7 @@ export default function WebsiteApp() {
                       }
                     }
                   }}
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                  className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8"
                 >
                   {products.map((p) => {
                     const isWishlisted = wishlist.some((item) => item.id === p.id);

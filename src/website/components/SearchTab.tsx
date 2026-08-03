@@ -74,7 +74,7 @@ export default function SearchTab({
   };
 
   return (
-    <section className="py-12 px-6 md:px-16 max-w-7xl mx-auto space-y-8 min-h-[70vh]">
+    <section className="py-12 px-4 md:px-16 max-w-7xl mx-auto space-y-8 min-h-[70vh]">
       {/* Header and Title */}
       <div className="space-y-2">
         <span className="font-mono text-[10px] tracking-[0.25em] text-[#575f65] uppercase">
@@ -246,7 +246,7 @@ export default function SearchTab({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
           {filteredProducts.map((p) => {
             const isWishlisted = wishlist.some((item) => item.id === p.id);
             return (
