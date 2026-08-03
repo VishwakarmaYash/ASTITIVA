@@ -31,9 +31,8 @@ export default function ProductCard({
         aria-label="Toggle Wishlist"
       >
         <Heart
-          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 ${
-            isWishlisted ? "fill-[#ba1a1a] text-[#ba1a1a] scale-110" : "text-[#575f65] hover:text-[#141b2b]"
-          }`}
+          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 ${isWishlisted ? "fill-[#ba1a1a] text-[#ba1a1a] scale-110" : "text-[#575f65] hover:text-[#141b2b]"
+            }`}
         />
       </button>
 
@@ -50,7 +49,7 @@ export default function ProductCard({
       </div>
 
       {/* Card Details Block */}
-      <div className="bg-[#ccff00] p-3.5 sm:p-5 flex flex-col justify-between flex-grow text-black border-t-2 border-black">
+      <div className="bg-[#FFFFFF] p-3.5 sm:p-5 flex flex-col justify-between flex-grow text-black border-t-2 border-black">
         <div>
           <h3 className="font-display font-extrabold text-sm sm:text-base text-black tracking-wider uppercase mb-1 line-clamp-2">
             {product.name}
