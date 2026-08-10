@@ -80,7 +80,7 @@ export default function ProductDetailsDrawer({
         {/* Header section of Drawer */}
         <div className="flex justify-between items-center px-6 py-5 border-b-2 border-black bg-[#f9f9ff]">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] tracking-[0.25em] text-black uppercase bg-[#ccff00] border border-black px-2.5 py-1 font-extrabold shadow-[1px_1px_0px_#000]">
+            <span className="font-mono text-[9px] tracking-[0.25em] text-black uppercase bg-[#e2e8dd] border border-black px-2.5 py-1 font-extrabold shadow-[1px_1px_0px_#000]">
               Glacier Monolith
             </span>
           </div>
@@ -102,7 +102,7 @@ export default function ProductDetailsDrawer({
             <div className="relative aspect-[4/3] bg-white border-2 border-black overflow-hidden shadow-[4px_4px_0px_#141b2b]">
               <img
                 referrerPolicy="no-referrer"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain bg-gray-50"
                 src={activeImage}
                 alt={product.name}
               />
@@ -192,7 +192,7 @@ export default function ProductDetailsDrawer({
                   }}
                   className={`py-3.5 text-center font-mono text-xs tracking-widest transition-all rounded-none border-2 border-black cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
                     selectedSize === size
-                      ? "bg-[#ccff00] text-black font-extrabold"
+                      ? "bg-[#e2e8dd] text-black font-extrabold"
                       : "bg-white hover:bg-neutral-50 text-[#141b2b]"
                   }`}
                 >
@@ -216,7 +216,7 @@ export default function ProductDetailsDrawer({
                 onClick={() => setActiveTab("specs")}
                 className={`flex-1 py-3 text-center font-mono text-[9px] tracking-[0.15em] uppercase font-extrabold transition-all border-2 border-black rounded-none cursor-pointer ${
                   activeTab === "specs"
-                    ? "bg-[#ccff00] text-black shadow-[2px_2px_0px_#000] -translate-y-[1px]"
+                    ? "bg-[#e2e8dd] text-black shadow-[2px_2px_0px_#000] -translate-y-[1px]"
                     : "bg-white text-neutral-500 hover:text-black hover:border-black"
                 }`}
               >
@@ -228,7 +228,7 @@ export default function ProductDetailsDrawer({
                 onClick={() => setActiveTab("features")}
                 className={`flex-1 py-3 text-center font-mono text-[9px] tracking-[0.15em] uppercase font-extrabold transition-all border-2 border-black rounded-none cursor-pointer ${
                   activeTab === "features"
-                    ? "bg-[#ccff00] text-black shadow-[2px_2px_0px_#000] -translate-y-[1px]"
+                    ? "bg-[#e2e8dd] text-black shadow-[2px_2px_0px_#000] -translate-y-[1px]"
                     : "bg-white text-neutral-500 hover:text-black hover:border-black"
                 }`}
               >
@@ -280,7 +280,7 @@ export default function ProductDetailsDrawer({
               id="add-to-bag-details-btn"
               type="button"
               onClick={handleAdd}
-              className="flex-grow bg-[#ccff00] text-black font-mono text-[10px] font-bold py-4 px-6 border-2 border-black shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer text-center uppercase tracking-widest"
+              className="flex-grow bg-[#e2e8dd] text-black font-mono text-[10px] font-bold py-4 px-6 border-2 border-black shadow-[4px_4px_0px_#000] hover:shadow-[2px_2px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer text-center uppercase tracking-widest"
             >
               Add To Bag
             </button>

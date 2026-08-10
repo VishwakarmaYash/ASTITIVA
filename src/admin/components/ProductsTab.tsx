@@ -42,10 +42,14 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
   const [formStatus, setFormStatus] = useState<'Active' | 'Draft'>('Active');
   const [formImage, setFormImage] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  const [formSizes, setFormSizes] = useState<string[]>(['Medium']);
+  const [formSizes, setFormSizes] = useState<string[]>(['M']);
   const [formColors, setFormColors] = useState<string[]>(['#000000']);
   const [formImages, setFormImages] = useState<string[]>([]);
   const [galleryUrlInput, setGalleryUrlInput] = useState<string>('');
+  const [formFeatures, setFormFeatures] = useState<string[]>([]);
+  const [formSpecs, setFormSpecs] = useState<string[]>([]);
+  const [featureInput, setFeatureInput] = useState<string>('');
+  const [specInput, setSpecInput] = useState<string>('');
 
   // Filters calculation
   const filteredProducts = products.filter((p) => {
@@ -79,10 +83,14 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
     setFormStatus('Active');
     setFormImage(PRESET_IMAGES[0].url);
     setFormDescription('');
-    setFormSizes(['Medium']);
+    setFormSizes(['M']);
     setFormColors(['#000000']);
     setFormImages([]);
     setGalleryUrlInput('');
+    setFormFeatures([]);
+    setFormSpecs([]);
+    setFeatureInput('');
+    setSpecInput('');
     setIsDrawerOpen(true);
   };
 
@@ -101,6 +109,10 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
     setFormColors(product.colors);
     setFormImages(product.images || []);
     setGalleryUrlInput('');
+    setFormFeatures((product as any).features || []);
+    setFormSpecs((product as any).specs || []);
+    setFeatureInput('');
+    setSpecInput('');
     setIsDrawerOpen(true);
   };
 
@@ -146,8 +158,8 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
         category: formCategory,
         image: formImage || PRESET_IMAGES[0].url,
         colorCode: formColors[0] || '',
-        features: (editingProduct as any).features || [],
-        specs: (editingProduct as any).specs || [],
+        features: formFeatures,
+        specs: formSpecs,
         sizes: formSizes,
         inventory: stockNum,
         images: finalImages
@@ -170,7 +182,9 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
                 description: formDescription,
                 sizes: formSizes,
                 colors: formColors,
-                images: finalImages
+                images: finalImages,
+                features: formFeatures,
+                specs: formSpecs
               }
             : p
         );
@@ -192,8 +206,8 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
         category: formCategory,
         image: formImage || PRESET_IMAGES[0].url,
         colorCode: formColors[0] || '',
-        features: [],
-        specs: [],
+        features: formFeatures,
+        specs: formSpecs,
         sizes: formSizes,
         inventory: stockNum,
         images: finalImages
@@ -214,7 +228,9 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
           description: formDescription,
           sizes: formSizes,
           colors: formColors,
-          images: finalImages
+          images: finalImages,
+          features: formFeatures,
+          specs: formSpecs
         };
         setProducts([newProduct, ...products]);
         alert('Product created and cataloged in Astitiva.');
@@ -740,15 +756,132 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
                   </div>
                 </section>
 
+                {/* Specifications & Unique Features Section */}
+                <section className="space-y-4">
+                  <p className="text-xs font-bold text-black uppercase tracking-wider font-mono">Specifications & Features</p>
+                  
+                  {/* Unique Features */}
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-[#6E6E73] uppercase tracking-wider block font-mono">
+                      Unique Features
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={featureInput}
+                        onChange={(e) => setFeatureInput(e.target.value)}
+                        placeholder="e.g. 300GSM ultra-heavyweight organic cotton"
+                        className="flex-grow bg-white border border-[#E5E7EB] rounded-lg px-4 py-2 focus:ring-1 focus:ring-[#005cba] outline-hidden text-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (featureInput.trim()) {
+                              setFormFeatures([...formFeatures, featureInput.trim()]);
+                              setFeatureInput('');
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (featureInput.trim()) {
+                            setFormFeatures([...formFeatures, featureInput.trim()]);
+                            setFeatureInput('');
+                          }
+                        }}
+                        className="px-4 py-2 bg-black text-white rounded-lg text-xs font-semibold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    {/* List of features */}
+                    <div className="flex flex-wrap gap-2 p-2.5 bg-[#FBFBFC] border border-[#E5E7EB] rounded-lg min-h-[40px]">
+                      {formFeatures.map((feat, index) => (
+                        <div key={index} className="flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-none text-xs font-mono font-medium">
+                          <span>{feat}</span>
+                          <button
+                            type="button"
+                            onClick={() => setFormFeatures(formFeatures.filter((_, i) => i !== index))}
+                            className="text-red-500 hover:text-red-700 font-bold ml-1 cursor-pointer"
+                            title="Remove feature"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      {formFeatures.length === 0 && (
+                        <span className="text-xs text-[#6E6E73]/50 italic self-center">No unique features added yet.</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Specifications */}
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-[#6E6E73] uppercase tracking-wider block font-mono">
+                      Specifications
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={specInput}
+                        onChange={(e) => setSpecInput(e.target.value)}
+                        placeholder="e.g. Material: 100% Organic Cotton"
+                        className="flex-grow bg-white border border-[#E5E7EB] rounded-lg px-4 py-2 focus:ring-1 focus:ring-[#005cba] outline-hidden text-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (specInput.trim()) {
+                              setFormSpecs([...formSpecs, specInput.trim()]);
+                              setSpecInput('');
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (specInput.trim()) {
+                            setFormSpecs([...formSpecs, specInput.trim()]);
+                            setSpecInput('');
+                          }
+                        }}
+                        className="px-4 py-2 bg-black text-white rounded-lg text-xs font-semibold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    {/* List of specs */}
+                    <div className="flex flex-wrap gap-2 p-2.5 bg-[#FBFBFC] border border-[#E5E7EB] rounded-lg min-h-[40px]">
+                      {formSpecs.map((spec, index) => (
+                        <div key={index} className="flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-none text-xs font-mono font-medium">
+                          <span>{spec}</span>
+                          <button
+                            type="button"
+                            onClick={() => setFormSpecs(formSpecs.filter((_, i) => i !== index))}
+                            className="text-red-500 hover:text-red-700 font-bold ml-1 cursor-pointer"
+                            title="Remove spec"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      {formSpecs.length === 0 && (
+                        <span className="text-xs text-[#6E6E73]/50 italic self-center">No specifications added yet.</span>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
                 {/* Variants Customization */}
                 <section className="space-y-4">
-                  <p className="text-xs font-bold text-[#005cba] uppercase tracking-wider">Variants</p>
+                  <p className="text-xs font-bold text-black uppercase tracking-wider font-mono">Variants</p>
                   <div>
-                    <label className="text-[11px] font-bold text-[#6E6E73] uppercase tracking-wider mb-2 block">
+                    <label className="text-[11px] font-bold text-[#6E6E73] uppercase tracking-wider mb-2 block font-mono">
                       Sizes Included
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      {['Small', 'Medium', 'Large', 'Standard', 'EU 42'].map((sz) => {
+                      {['XS', 'S', 'M', 'L', 'XL'].map((sz) => {
                         const included = formSizes.includes(sz);
                         return (
                           <button
@@ -761,10 +894,10 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
                                 setFormSizes([...formSizes, sz]);
                               }
                             }}
-                            className={`px-3 py-1.5 border rounded text-xs font-medium cursor-pointer transition-all ${
+                            className={`px-4 py-2 border-2 border-black rounded-none text-xs font-mono font-bold tracking-widest cursor-pointer transition-all shadow-[2px_2px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
                               included
-                                ? 'border-[#005cba] bg-[#005cba]/5 text-[#005cba]'
-                                : 'border-[#E5E7EB] text-[#6E6E73] hover:border-[#005cba]'
+                                ? 'bg-[#e2e8dd] text-black font-extrabold shadow-[2px_2px_0px_#000]'
+                                : 'bg-white text-[#141b2b] hover:bg-neutral-50 shadow-[2px_2px_0px_#000]'
                             }`}
                           >
                             {sz}

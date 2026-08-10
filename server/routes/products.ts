@@ -111,6 +111,21 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) =>
   try {
     const { id } = req.params;
 
+    // Delete references from cart_items first to avoid foreign key violations
+    const { error: cartError } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('product_id', id);
+    if (cartError) throw cartError;
+
+    // Delete references from wishlist first to avoid foreign key violations
+    const { error: wishlistError } = await supabase
+      .from('wishlist')
+      .delete()
+      .eq('product_id', id);
+    if (wishlistError) throw wishlistError;
+
+    // Delete the product
     const { error } = await supabase
       .from('products')
       .delete()

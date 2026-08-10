@@ -114,6 +114,21 @@ export const getAllUsers = async () => {
 
 export const deleteUser = async (userId: string) => {
   try {
+    // Delete associated cart items first to avoid foreign key violations
+    const { error: cartError } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('user_id', userId);
+    if (cartError) throw cartError;
+
+    // Delete associated wishlist items first to avoid foreign key violations
+    const { error: wishlistError } = await supabase
+      .from('wishlist')
+      .delete()
+      .eq('user_id', userId);
+    if (wishlistError) throw wishlistError;
+
+    // Delete the user record
     const { error } = await supabase
       .from('users')
       .delete()

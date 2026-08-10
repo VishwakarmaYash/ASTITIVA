@@ -12,6 +12,8 @@ export interface Product {
   sizes: string[];
   colors: string[]; // hex codes or color names
   images?: string[];
+  features?: string[];
+  specs?: string[];
 }
 
 export interface OrderItem {
