@@ -1555,24 +1555,116 @@ export default function WebsiteApp() {
                  </motion.div>
               </section>
 
-              {/* Dynamic Embedded Custom Studio Section */}
-              <section className="bg-white/40 border-t-2 border-black py-16">
-                {isLoggedIn ? (
-                  <CustomStudio
-                    onAddCustomToCart={handleAddCustomToCart}
-                    onNavigateHome={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                  />
-                ) : (
-                  <div className="max-w-lg mx-auto py-12 px-6 text-center border-2 border-black bg-white shadow-[6px_6px_0px_#000]">
-                    <span className="font-mono text-xs text-[#575f65] uppercase tracking-widest font-bold">
-                      ACCESS PROTOCOL REQUIRED
-                    </span>
-                    <p className="text-xs text-[#575f65] mt-1 mb-6">
-                      Please sign in to access the Custom Print Studio and design your piece.
-                    </p>
-                    <AuthTab onAuthSuccess={handleAuthSuccess} />
+              {/* Custom T-Shirt Promo Banner Section */}
+              <section className="py-16 md:py-24 px-4 md:px-16 max-w-7xl mx-auto">
+                <div className="bg-white rounded-[32px] border border-black/5 shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden grid grid-cols-1 md:grid-cols-2 min-h-[460px]">
+                  {/* Left Column: Promotion Info */}
+                  <div className="p-8 md:p-16 flex flex-col justify-center space-y-8">
+                    {/* Icon Header */}
+                    <div className="w-14 h-14 bg-[#4f2cf2]/10 rounded-2xl flex items-center justify-center text-[#4f2cf2]">
+                      <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20.38 3.46L16 1.44a1 1 0 0 0-1.12.18L12 4.5 9.12 1.62a1 1 0 0 0-1.12-.18L3.62 3.46a1 1 0 0 0-.62.92v3.18a1 1 0 0 0 .22.62l3.4 4.54a1 1 0 0 1 .16.62v6.62a1 1 0 0 0 1 1h8.48a1 1 0 0 0 1-1v-6.62a1 1 0 0 1 .16-.62l3.4-4.54a1 1 0 0 0 .22-.62V4.38a1 1 0 0 0-.62-.92z" />
+                        <path d="M12 18h.01" />
+                      </svg>
+                    </div>
+
+                    {/* Typography */}
+                    <div className="space-y-4">
+                      <h2 className="font-display font-black text-4xl md:text-5xl text-black leading-tight tracking-tight">
+                        Customize <br />
+                        <span className="text-[#4f2cf2]">Your T-Shirt</span>
+                      </h2>
+                      <p className="font-sans text-neutral-500 text-sm md:text-base leading-relaxed max-w-md">
+                        Design your own style! Choose your color, add text or graphics and create something unique.
+                      </p>
+                    </div>
+
+                    {/* Features Row */}
+                    <div className="flex items-center gap-6 md:gap-8 pt-2">
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="w-12 h-12 bg-[#4f2cf2]/5 rounded-xl flex items-center justify-center text-[#4f2cf2]">
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
+                            <path d="M7.5 10.5C8.32843 10.5 9 9.82843 9 9C9 8.17157 8.32843 7.5 7.5 7.5C6.67157 7.5 6 8.17157 6 9C6 9.82843 6.67157 10.5 7.5 10.5Z" />
+                            <path d="M11.5 7.5C12.3284 7.5 13 6.82843 13 6C13 5.17157 12.3284 4.5 11.5 4.5C10.6716 4.5 10 5.17157 10 6C10 6.82843 10.6716 7.5 11.5 7.5Z" />
+                            <path d="M16.5 9.5C17.3284 9.5 18 8.82843 18 8C18 7.17157 17.3284 6.5 16.5 6.5C15.6716 6.5 15 7.17157 15 8C15 8.82843 15.6716 9.5 16.5 9.5Z" />
+                          </svg>
+                        </div>
+                        <span className="text-[10px] md:text-xs font-mono font-bold text-neutral-500 uppercase tracking-wider">Choose Color</span>
+                      </div>
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="w-12 h-12 bg-[#4f2cf2]/5 rounded-xl flex items-center justify-center text-[#4f2cf2]">
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="4 7 4 4 20 4 20 7" />
+                            <line x1="9" y1="20" x2="15" y2="20" />
+                            <line x1="12" y1="4" x2="12" y2="20" />
+                          </svg>
+                        </div>
+                        <span className="text-[10px] md:text-xs font-mono font-bold text-neutral-500 uppercase tracking-wider">Add Text</span>
+                      </div>
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="w-12 h-12 bg-[#4f2cf2]/5 rounded-xl flex items-center justify-center text-[#4f2cf2]">
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <polyline points="21 15 16 10 5 21" />
+                          </svg>
+                        </div>
+                        <span className="text-[10px] md:text-xs font-mono font-bold text-neutral-500 uppercase tracking-wider">Add Graphics</span>
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <div className="pt-2">
+                      <button
+                        onClick={() => {
+                          setActiveTab("custom");
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="bg-[#4f2cf2] text-white hover:bg-[#3d1ec5] font-sans text-sm font-bold py-4 px-8 rounded-2xl flex items-center gap-3 shadow-lg shadow-[#4f2cf2]/20 hover:shadow-xl hover:shadow-[#4f2cf2]/30 hover:-translate-y-0.5 transition-all cursor-pointer"
+                      >
+                        Customize Now
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                )}
+
+                  {/* Right Column: Visual Mockup */}
+                  <div className="relative bg-[#f1edff] min-h-[300px] md:min-h-full flex items-center justify-center overflow-hidden">
+                    {/* Wavy abstract decorative lines */}
+                    <div className="absolute inset-0 opacity-40 pointer-events-none">
+                      <svg className="w-full h-full" viewBox="0 0 400 400" fill="none">
+                        <path d="M-50,300 C50,250 100,350 200,300 C300,250 350,350 450,300" stroke="#4f2cf2" strokeWidth="2" strokeDasharray="6 6" />
+                        <path d="M-50,100 C50,50 120,150 220,100 C320,50 380,150 480,100" stroke="#4f2cf2" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </div>
+
+                    {/* Mockup Image */}
+                    <div className="relative w-full h-full flex items-center justify-center p-6">
+                      <img
+                        src="/images/custom_tee_promo.jpg"
+                        alt="Custom T-Shirt Preview"
+                        className="w-full h-full object-cover max-h-[420px] rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.1)]"
+                      />
+                    </div>
+
+                    {/* Circular floating action indicator */}
+                    <button
+                      onClick={() => {
+                        setActiveTab("custom");
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="absolute bottom-6 right-6 w-14 h-14 bg-[#4f2cf2] hover:bg-[#3d1ec5] text-white rounded-full flex items-center justify-center shadow-lg shadow-[#4f2cf2]/30 hover:scale-105 transition-all cursor-pointer"
+                      aria-label="Customize now"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </section>
 
               {/* Aesthetic Philosophy Interstitial */}
