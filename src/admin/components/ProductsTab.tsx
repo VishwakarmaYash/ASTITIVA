@@ -267,6 +267,9 @@ export default function ProductsTab({ products, setProducts }: ProductsTabProps)
     { name: 'Tuscan Tan', hex: '#D2B48C' },
     { name: 'Ocean Navy', hex: '#002D61' },
     { name: 'Deep Emerald', hex: '#047857' },
+    { name: 'Navy Blue', hex: '#1B365D' },
+    { name: 'Crimson Red', hex: '#BA1A1A' },
+    { name: 'Earth Brown', hex: '#6B4423' },
   ];
 
   return (
