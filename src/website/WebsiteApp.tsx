@@ -567,7 +567,10 @@ const renderCampaignCard = (item: any) => {
     <div
       className="flex flex-col bg-white border border-black/5 overflow-hidden group shadow-sm hover:shadow-lg transition-all duration-300 h-full"
     >
-      <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
+      <div 
+        onClick={item.buttonAction}
+        className="relative aspect-[3/4] overflow-hidden bg-gray-100 cursor-pointer"
+      >
         <img
           referrerPolicy="no-referrer"
           src={item.imageUrl}
@@ -628,6 +631,30 @@ export default function WebsiteApp() {
   });
 
   const [activeGalleryIndex, setActiveGalleryIndex] = useState<number>(1);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      setActiveGalleryIndex((prev) => (prev === galleryItems.length - 1 ? 0 : prev + 1));
+    } else if (isRightSwipe) {
+      setActiveGalleryIndex((prev) => (prev === 0 ? galleryItems.length - 1 : prev - 1));
+    }
+  };
 
   // Prepare Gallery Items
   const galleryItems = useMemo(() => {
@@ -667,13 +694,8 @@ export default function WebsiteApp() {
         buttonText: "SHOP SIGNATURE TEE",
         buttonBg: "bg-[#ba1a1a] text-white",
         buttonAction: () => {
-          const sigProd = products.find(p => p.id === "astitva-signature-tee") || PRODUCTS.find(p => p.id === "astitva-signature-tee");
-          if (sigProd) {
-            setSelectedProduct(sigProd);
-            triggerToast("LOADING SIGNATURE CUSTOMS DETAIL");
-          } else {
-            triggerToast("SIGNATURE PRODUCT ACCESS PENDING");
-          }
+          document.getElementById("new-arrivals-section")?.scrollIntoView({ behavior: "smooth" });
+          triggerToast("SCROLLING TO SYSTEM CATALOG");
         }
       },
       {
@@ -1417,32 +1439,13 @@ export default function WebsiteApp() {
                 <div className="block md:hidden relative w-full overflow-hidden select-none">
                   {/* Slider Container */}
                   <div className="relative w-full flex items-center justify-center h-[525px]">
-                    {/* Left Navigation Arrow */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveGalleryIndex((prev) => (prev === 0 ? galleryItems.length - 1 : prev - 1));
-                      }}
-                      className="absolute left-3 z-20 w-10 h-10 bg-white border-2 border-black shadow-[2px_2px_0px_#000] flex items-center justify-center rounded-none active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] transition-all cursor-pointer"
-                      aria-label="Previous Campaign"
-                    >
-                      <ChevronLeft className="w-5 h-5 text-black" />
-                    </button>
-
-                    {/* Right Navigation Arrow */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveGalleryIndex((prev) => (prev === galleryItems.length - 1 ? 0 : prev + 1));
-                      }}
-                      className="absolute right-3 z-20 w-10 h-10 bg-white border-2 border-black shadow-[2px_2px_0px_#000] flex items-center justify-center rounded-none active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] transition-all cursor-pointer"
-                      aria-label="Next Campaign"
-                    >
-                      <ChevronRight className="w-5 h-5 text-black" />
-                    </button>
-
                     {/* Cards Frame */}
-                    <div className="relative w-full h-full flex items-center justify-center">
+                    <div 
+                      onTouchStart={handleTouchStart}
+                      onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
+                      className="relative w-full h-full flex items-center justify-center"
+                    >
                       {galleryItems.map((item, idx) => {
                         let diff = idx - activeGalleryIndex;
                         if (diff === 2) diff = -1;
